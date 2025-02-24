@@ -7,6 +7,7 @@ export default function Home() {
       <p className="mt-4 text-lg text-gray-600">
         Gestiona tus eventos de manera rápida y eficiente con nuestra
         plataforma.
+        a
       </p>
     </div>
   );
