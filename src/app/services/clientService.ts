@@ -35,9 +35,15 @@ export async function updateCliente(
   const res = await fetch(`${baseUrl}/api/clientes/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      ...data,
+      fechaNacimiento: new Date(data.fechaNacimiento).toISOString(),
+    }),
   });
-  if (!res.ok) throw new Error("Error al actualizar cliente");
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Error al actualizar cliente");
+  }
   const json = (await res.json()) as ApiResponse<Cliente>;
   return json.data;
 }

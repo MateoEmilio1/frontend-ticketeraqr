@@ -1,150 +1,169 @@
-import React, { useState, useEffect } from "react";
-import { Card } from "@/app/components/ui/card";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { UserPlus } from "lucide-react";
-import { ClienteFormData, DEFAULT_FORM_DATA } from "@/types/cliente";
-
-const tiposDocumento = ["DNI", "Pasaporte", "Cédula"] as const;
+import { useState, useEffect } from "react";
+import { ClienteFormData } from "@/types/cliente";
 
 interface ClienteFormProps {
   initialData?: ClienteFormData;
-  isEditing?: boolean;
-  onSubmit: (data: ClienteFormData) => Promise<void>;
+  isEditing: boolean;
+  onSubmit: (data: ClienteFormData) => void;
   onCancel?: () => void;
-  loading?: boolean;
+  loading: boolean;
 }
 
 export const ClienteForm: React.FC<ClienteFormProps> = ({
   initialData,
-  isEditing = false,
+  isEditing,
   onSubmit,
   onCancel,
-  loading = false,
+  loading,
 }) => {
-  const [formData, setFormData] = useState<ClienteFormData>(
-    initialData || DEFAULT_FORM_DATA
-  );
+  const [formData, setFormData] = useState<ClienteFormData>({
+    mail: "",
+    contraseña: "",
+    nombre: "",
+    apellido: "",
+    tipoDoc: "DNI",
+    nroDoc: "",
+    fechaNacimiento: "",
+  });
 
   useEffect(() => {
-    setFormData(initialData || DEFAULT_FORM_DATA);
+    if (initialData) setFormData(initialData);
   }, [initialData]);
 
-  const handleInputChange = (field: keyof ClienteFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(formData);
-    setFormData(DEFAULT_FORM_DATA);
+    onSubmit(formData);
   };
 
   return (
-    <Card className="p-4">
-      <div className="mb-4 flex items-center gap-2">
-        <UserPlus className="h-5 w-5" />
-        <h3 className="text-lg font-semibold">
-          {isEditing ? "Editar Cliente" : "Nuevo Cliente"}
-        </h3>
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 p-4 bg-white rounded-lg shadow"
+    >
+      <div>
+        <label className="block mb-2 text-sm font-medium">Email</label>
+        <input
+          type="email"
+          name="mail"
+          value={formData.mail}
+          onChange={handleChange}
+          disabled={isEditing}
+          className="w-full p-2 border rounded"
+          required
+        />
       </div>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Nombre</label>
-            <Input
-              required
-              value={formData.nombre}
-              onChange={(e) => handleInputChange("nombre", e.target.value)}
-              placeholder="Nombre"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Apellido</label>
-            <Input
-              required
-              value={formData.apellido}
-              onChange={(e) => handleInputChange("apellido", e.target.value)}
-              placeholder="Apellido"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Documento</label>
-            <select
-              value={formData.tipoDoc}
-              onChange={(e) => handleInputChange("tipoDoc", e.target.value)}
-              className="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-sm"
-            >
-              {tiposDocumento.map((tipo) => (
-                <option key={tipo} value={tipo}>
-                  {tipo}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Número de Documento
-            </label>
-            <Input
-              required
-              value={formData.nroDoc}
-              onChange={(e) => handleInputChange("nroDoc", e.target.value)}
-              placeholder="Número de Documento"
-            />
-          </div>
-          <div className="col-span-2">
-            <label className="block text-sm font-medium mb-1">
-              Fecha de Nacimiento
-            </label>
-            <Input
-              type="date"
-              required
-              value={formData.fechaNacimiento}
-              onChange={(e) =>
-                handleInputChange("fechaNacimiento", e.target.value)
-              }
-            />
-          </div>
-          <div className="col-span-2">
-            <label className="block text-sm font-medium mb-1">
-              Correo Electrónico
-            </label>
-            <Input
-              type="email"
-              required
-              value={formData.mail}
-              onChange={(e) => handleInputChange("mail", e.target.value)}
-              placeholder="Correo Electrónico"
-            />
-          </div>
-          <div className="col-span-2">
-            <label className="block text-sm font-medium mb-1">Contraseña</label>
-            <Input
-              type="password"
-              required={!isEditing}
-              value={formData.contraseña}
-              onChange={(e) => handleInputChange("contraseña", e.target.value)}
-              placeholder="Contraseña"
-            />
-          </div>
+
+      {!isEditing && (
+        <div>
+          <label className="block mb-2 text-sm font-medium">Contraseña</label>
+          <input
+            type="password"
+            name="contraseña"
+            value={formData.contraseña || ""}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            required={!isEditing}
+          />
         </div>
-        <div className="flex gap-2">
-          <Button type="submit" disabled={loading} className="flex-1">
-            {isEditing ? "Actualizar" : "Agregar"}
-          </Button>
-          {isEditing && onCancel && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              className="flex-1"
-            >
-              Cancelar
-            </Button>
-          )}
+      )}
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block mb-2 text-sm font-medium">Nombre</label>
+          <input
+            type="text"
+            name="nombre"
+            value={formData.nombre}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            required
+          />
         </div>
-      </form>
-    </Card>
+
+        <div>
+          <label className="block mb-2 text-sm font-medium">Apellido</label>
+          <input
+            type="text"
+            name="apellido"
+            value={formData.apellido}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            required
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block mb-2 text-sm font-medium">
+            Tipo Documento
+          </label>
+          <select
+            name="tipoDoc"
+            value={formData.tipoDoc}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+          >
+            <option value="DNI">DNI</option>
+            <option value="Pasaporte">Pasaporte</option>
+            <option value="Cédula">Cédula</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block mb-2 text-sm font-medium">
+            Número Documento
+          </label>
+          <input
+            type="text"
+            name="nroDoc"
+            value={formData.nroDoc}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            required
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block mb-2 text-sm font-medium">
+          Fecha Nacimiento
+        </label>
+        <input
+          type="date"
+          name="fechaNacimiento"
+          value={formData.fechaNacimiento}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+          required
+        />
+      </div>
+
+      <div className="flex gap-2 mt-4">
+        <button
+          type="submit"
+          disabled={loading}
+          className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 disabled:bg-gray-400"
+        >
+          {loading ? "Guardando..." : isEditing ? "Actualizar" : "Crear"}
+        </button>
+
+        {isEditing && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
+    </form>
   );
 };

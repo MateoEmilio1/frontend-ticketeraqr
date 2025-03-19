@@ -14,62 +14,79 @@ import { ClienteFormData, Cliente } from "@/types/cliente";
 
 export default function ClientesPage() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [editingCliente, setEditingCliente] = useState<ClienteFormData | null>(
+    null
+  );
 
   useEffect(() => {
-    async function loadClientes() {
-      setLoading(true);
-      try {
-        const data = await getClientes();
-        setClientes(data);
-      } catch (error) {
-        console.error("Error loading clientes:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
     loadClientes();
   }, []);
+
+  const loadClientes = async () => {
+    try {
+      const data = await getClientes();
+      setClientes(data);
+    } catch (error) {
+      console.error("Error cargando clientes:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleFormSubmit = async (data: ClienteFormData) => {
     setLoading(true);
     try {
-      if (editingCliente) {
-        const updatedCliente = await updateCliente(
-          editingCliente.idCliente,
-          data
-        );
+      if (editingCliente && editingCliente.idCliente) {
+        const updatedCliente = await updateCliente(editingCliente.idCliente, {
+          ...data,
+          fechaNacimiento: new Date(data.fechaNacimiento).toISOString(),
+        });
+
         setClientes((prev) =>
           prev.map((cliente) =>
             cliente.idCliente === updatedCliente.idCliente
-              ? updatedCliente
+              ? { ...updatedCliente, usuario: cliente.usuario }
               : cliente
           )
         );
-        setEditingCliente(null);
       } else {
         const newCliente = await createCliente(data);
         setClientes((prev) => [...prev, newCliente]);
       }
+      setEditingCliente(null);
     } catch (error) {
-      console.error("Error submitting form:", error);
+      console.error("Error en el formulario:", error);
+      alert((error as Error).message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleEdit = (cliente: Cliente) => {
-    setEditingCliente(cliente);
+    setEditingCliente({
+      idCliente: cliente.idCliente,
+      mail: cliente.usuario.mail,
+      contraseña: "", // No mostramos la contraseña actual
+      nombre: cliente.nombre,
+      apellido: cliente.apellido,
+      tipoDoc: cliente.tipoDoc,
+      nroDoc: cliente.nroDoc,
+      fechaNacimiento: new Date(cliente.fechaNacimiento)
+        .toISOString()
+        .split("T")[0],
+    });
   };
 
   const handleDelete = async (id: number) => {
+    if (!confirm("¿Estás seguro de eliminar este cliente?")) return;
     setLoading(true);
     try {
       await deleteCliente(id);
       setClientes((prev) => prev.filter((cliente) => cliente.idCliente !== id));
     } catch (error) {
-      console.error("Error deleting cliente:", error);
+      console.error("Error eliminando cliente:", error);
+      alert((error as Error).message);
     } finally {
       setLoading(false);
     }
