@@ -48,7 +48,7 @@ export async function updateCliente(
   return json.data;
 }
 
-export async function deleteCliente(id: number): Promise<void> {
+export async function deleteCliente(id: number): Promise<null> {
   const res = await fetch(`${baseUrl}/api/clientes/${id}`, {
     method: "DELETE",
   });
