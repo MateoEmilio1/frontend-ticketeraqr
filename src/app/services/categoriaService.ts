@@ -17,7 +17,9 @@ export async function getCategorias(): Promise<Categoria[]> {
   return json.data;
 }
 
-export async function createCategoria(data: CategoriaFormData): Promise<Categoria> {
+export async function createCategoria(
+  data: CategoriaFormData
+): Promise<Categoria> {
   const res = await fetch(`${baseUrl}/api/categorias`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -28,7 +30,10 @@ export async function createCategoria(data: CategoriaFormData): Promise<Categori
   return json.data;
 }
 
-export async function updateCategoria(id: number, data: CategoriaFormData): Promise<Categoria> {
+export async function updateCategoria(
+  id: number,
+  data: CategoriaFormData
+): Promise<Categoria> {
   const res = await fetch(`${baseUrl}/api/categorias/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -42,7 +47,7 @@ export async function updateCategoria(id: number, data: CategoriaFormData): Prom
   return json.data;
 }
 
-export async function deleteCategoria(id: number): Promise<void> {
+export async function deleteCategoria(id: number): Promise<null> {
   const res = await fetch(`${baseUrl}/api/categorias/${id}`, {
     method: "DELETE",
   });
