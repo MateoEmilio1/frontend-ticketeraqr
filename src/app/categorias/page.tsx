@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { CategoriaForm } from "@/app/components/categoriaForm";
+import { CategoriaTable } from "@/app/components/categoriaTable";
+import ConfirmDeleteModal from "@/app/components/ui/confirmDeleteModal";
 import {
   getCategorias,
   createCategoria,
@@ -8,159 +11,104 @@ import {
   deleteCategoria,
 } from "@/app/services/categoriaService";
 import { Categoria, CategoriaFormData } from "@/types/categoria";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/app/components/ui/card";
-import { Label } from "@/app/components/ui/label";
 
-const CategoriasPage = () => {
-  const [nombreCategoria, setNombreCategoria] = useState("");
+export default function CategoriasPage() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [editingCategoria, setEditingCategoria] = useState<Categoria | null>(
-    null
-  );
+  const [loading, setLoading] = useState(true);
+  const [editingCategoria, setEditingCategoria] = useState<Categoria | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [categoriaToDelete, setCategoriaToDelete] = useState<Categoria | null>(null);
 
-  // Función para obtener la lista de categorías
-  const fetchCategorias = async () => {
+  useEffect(() => {
+    loadCategorias();
+  }, []);
+
+  const loadCategorias = async () => {
     try {
       const data = await getCategorias();
       setCategorias(data);
     } catch (error) {
-      console.error("Error al obtener categorías", error);
+      console.error("Error al cargar categorías:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchCategorias();
-  }, []);
-
-  // Maneja el envío del formulario para crear o actualizar categoría
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData: CategoriaFormData = { nombreCategoria };
+  const handleFormSubmit = async (data: CategoriaFormData) => {
+    setLoading(true);
     try {
       if (editingCategoria) {
-        await updateCategoria(editingCategoria.idCategoria, formData);
-        setEditingCategoria(null);
+        await updateCategoria(editingCategoria.idCategoria, data);
       } else {
-        await createCategoria(formData);
+        await createCategoria(data);
       }
-      setNombreCategoria("");
-      fetchCategorias();
+      await loadCategorias();
+      setEditingCategoria(null);
     } catch (error) {
-      console.error("Error al enviar el formulario", error);
+      console.error("Error al guardar la categoría:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Configura el formulario para editar una categoría
   const handleEdit = (categoria: Categoria) => {
     setEditingCategoria(categoria);
-    setNombreCategoria(categoria.nombreCategoria);
   };
 
-  // Elimina una categoría
-  const handleDelete = async (id: number) => {
+  const handleDeleteRequest = (categoria: Categoria) => {
+    setCategoriaToDelete(categoria);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!categoriaToDelete) return;
+    setLoading(true);
     try {
-      await deleteCategoria(id);
-      fetchCategorias();
+      await deleteCategoria(categoriaToDelete.idCategoria);
+      await loadCategorias();
     } catch (error) {
-      console.error("Error al eliminar la categoría", error);
+      console.error("Error al eliminar la categoría:", error);
+    } finally {
+      setShowDeleteModal(false);
+      setCategoriaToDelete(null);
+      setLoading(false);
     }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCategoria(null);
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Formulario para crear o editar */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {editingCategoria ? "Editar Categoría" : "Crear Categoría"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="nombreCategoria" className="block mb-1">
-                Nombre de la Categoría
-              </Label>
-              <Input
-                id="nombreCategoria"
-                type="text"
-                placeholder="Ingrese el nombre de la categoría"
-                value={nombreCategoria}
-                onChange={(e) => setNombreCategoria(e.target.value)}
-                required
-                className="w-full"
-              />
-            </div>
-            <div className="flex items-center space-x-3">
-              <Button type="submit">
-                {editingCategoria ? "Actualizar" : "Crear"}
-              </Button>
-              {editingCategoria && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => {
-                    setEditingCategoria(null);
-                    setNombreCategoria("");
-                  }}
-                >
-                  Cancelar
-                </Button>
-              )}
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Gestión de Categorías</h1>
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div className="col-span-12 md:col-span-4">
+          <CategoriaForm
+            initialData={editingCategoria || undefined}
+            isEditing={!!editingCategoria}
+            onSubmit={handleFormSubmit}
+            onCancel={handleCancelEdit}
+            loading={loading}
+          />
+        </div>
+        <div className="col-span-12 md:col-span-8">
+          <CategoriaTable
+            categorias={categorias}
+            loading={loading}
+            onEdit={handleEdit}
+            onDelete={handleDeleteRequest}
+          />
+        </div>
+      </div>
 
-      {/* Lista de categorías */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Categorías</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {categorias.length === 0 ? (
-            <p className="text-muted-foreground">
-              No hay categorías disponibles.
-            </p>
-          ) : (
-            <div className="divide-y">
-              {categorias.map((categoria) => (
-                <div
-                  key={categoria.idCategoria}
-                  className="py-2 flex justify-between items-center"
-                >
-                  <span>{categoria.nombreCategoria}</span>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(categoria)}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(categoria.idCategoria)}
-                    >
-                      Eliminar
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {showDeleteModal && categoriaToDelete && (
+        <ConfirmDeleteModal
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteConfirm}
+          itemName={categoriaToDelete.nombreCategoria}
+        />
+      )}
     </div>
   );
-};
-
-export default CategoriasPage;
+}
