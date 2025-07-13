@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { CategoriaFormData } from "@/types/categoria";
+import { Categoria } from "@/types/categoria";
 
 interface CategoriaFormProps {
-  initialData?: CategoriaFormData;
+  initialData?: Categoria;
   isEditing: boolean;
-  onSubmit: (data: CategoriaFormData) => void;
+  onSubmit: (data: Categoria) => void;
   onCancel?: () => void;
   loading: boolean;
 }
@@ -16,9 +16,11 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
   onCancel,
   loading,
 }) => {
-  const [formData, setFormData] = useState<CategoriaFormData>({
+  const [formData, setFormData] = useState<Categoria>({
+    idCategoria: 0,
     nombreCategoria: "",
   });
+
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
@@ -27,7 +29,7 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError(""); // Limpiar error cuando el usuario escribe
+    setError("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -44,22 +46,24 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 p-4 bg-white rounded-lg shadow"
+      className="space-y-4 p-4 bg-white rounded-lg shadow w-full max-w-md"
     >
       <div>
-        <label className="block mb-2 text-sm font-medium">Nombre Categoría</label>
+        <label htmlFor="nombreCategoria" className="block mb-2 text-sm font-medium">
+          Nombre de la Categoría
+        </label>
         <input
           type="text"
+          id="nombreCategoria"
           name="nombreCategoria"
+          className="w-full p-2 border rounded"
           value={formData.nombreCategoria}
           onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
         />
-        {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+        {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
       </div>
 
-      <div className="flex gap-2 mt-4">
+      <div className="flex gap-2 pt-2">
         <button
           type="submit"
           disabled={loading}
@@ -81,3 +85,5 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
     </form>
   );
 };
+
+export default CategoriaForm;
