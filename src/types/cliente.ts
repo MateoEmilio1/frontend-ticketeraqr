@@ -19,6 +19,7 @@ export interface Cliente {
   usuario: {
     mail: string;
     rol: Rol;
+    pasword: string;
   };
 }
 

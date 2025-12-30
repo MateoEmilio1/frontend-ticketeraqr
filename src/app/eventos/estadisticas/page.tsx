@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getEstadisticasEventos } from "@/app/services/eventoService";
+import { getEstadisticasEventos } from "@/app/services/estadisticaService";
 import { EstadisticasResponse, EstadisticaEvento } from "@/types/evento";
 import EventoEstadisticasTable from "@/app/components/eventoEstadisticasTable";
 
