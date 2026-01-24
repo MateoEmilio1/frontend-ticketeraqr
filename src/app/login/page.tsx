@@ -18,9 +18,11 @@ export default function LoginPage() {
     setError(null);
     try {
       const usuario = await loginUsuario(data.email, data.password);
-      if (usuario) {
+        if (usuario) {
+        localStorage.setItem("rol", usuario.rol); 
         router.push("/");
-      }
+        }
+
     } catch (err) {
       setError((err as Error).message);
     } finally {
