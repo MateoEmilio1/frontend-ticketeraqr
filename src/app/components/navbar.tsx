@@ -4,8 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Rol } from "@/types/usuario";
 
-type Rol = "admin" | "organizacion" | "cliente";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -13,6 +13,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const storedRol = localStorage.getItem("rol") as Rol | null;
+    console.log('storedRol: ', storedRol)
     setRol(storedRol);
   }, []);
 
@@ -44,7 +45,7 @@ export default function Navbar() {
           {/* Links */}
           <div className="flex gap-8">
 
-            {rol === "organizacion" && (
+            {rol === "ORGANIZACION" && (
               <>
                 <Link href="/eventos" className={linkClass("/eventos")}>
                   Mis eventos
@@ -58,7 +59,7 @@ export default function Navbar() {
               </>
             )}
 
-            {rol === "admin" && (
+            {rol === "ADMIN" && (
               <>
                 <Link
                   href="/admin/categorias"
@@ -75,7 +76,7 @@ export default function Navbar() {
               </>
             )}
 
-            {rol === "cliente" && (
+            {rol === "CLIENTE" && (
               <>
                 <Link href="/categorias" className={linkClass("/categorias")}>
                   Categorías

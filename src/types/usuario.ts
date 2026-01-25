@@ -1,3 +1,5 @@
+// TODO: podriamos dejar uno solo de los siguientes?
+
 export interface loginForm {
   mail: string;
   contraseña: string;
@@ -12,7 +14,12 @@ export interface Usuario {
   rol?: Rol;
 }
 
+
+/*
 export enum Rol {
   CLIENTE = "CLIENTE",
   ADMIN = "ADMIN",
-}
+  ORGANIZACION = "ORGANIZACION"
+} */
+
+export type Rol = "ADMIN" | "ORGANIZACION" | "CLIENTE";
