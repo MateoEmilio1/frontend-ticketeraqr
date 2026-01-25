@@ -17,10 +17,8 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      console.log('holaa')
       const usuario = await loginUsuario(data.email, data.password);
         if (usuario) {
-          console.log('rol: ', usuario.rol)
         localStorage.setItem("rol", usuario.rol); 
         router.push("/");
         }
