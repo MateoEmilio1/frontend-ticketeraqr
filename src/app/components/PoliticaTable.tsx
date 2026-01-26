@@ -65,8 +65,8 @@ export const PoliticaTable: React.FC<PoliticaTableProps> = ({
                                     <td className="px-4 py-3 text-sm text-gray-700">
                                         {new Date(politica.fechaVigencia).toLocaleString("es-AR", {
                                             year: "numeric",
-                                            month: "long",
-                                            day: "numeric",
+                                            month: "2-digit",
+                                            day: "2-digit",
                                             hour: "2-digit",
                                             minute: "2-digit",
                                         })}

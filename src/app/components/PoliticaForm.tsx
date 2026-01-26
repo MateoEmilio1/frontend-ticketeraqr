@@ -69,7 +69,13 @@ export const PoliticaForm: React.FC<PoliticaFormProps> = ({
                         <p className="text-2xl font-bold">{politicaActual.diasReembolso} días</p>
                         <p className="text-xs mt-1">
                             Vigente desde:{" "}
-                            {new Date(politicaActual.fechaVigencia).toLocaleDateString("es-AR")}
+                            {new Date(politicaActual.fechaVigencia).toLocaleString("es-AR", {
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            })}
                         </p>
                     </div>
                 ) : (
