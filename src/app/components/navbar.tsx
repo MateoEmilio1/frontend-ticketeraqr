@@ -13,17 +13,15 @@ export default function Navbar() {
 
   useEffect(() => {
     const storedRol = localStorage.getItem("rol") as Rol | null;
-    console.log('storedRol: ', storedRol)
     setRol(storedRol);
   }, []);
 
   const isActive = (href: string) => pathname.startsWith(href);
 
   const linkClass = (href: string) =>
-    `text-sm font-medium ${
-      isActive(href)
-        ? "border-b-2 border-gray-800 text-gray-900 pb-1"
-        : "text-gray-500 hover:text-black"
+    `text-sm font-medium ${isActive(href)
+      ? "border-b-2 border-gray-800 text-gray-900 pb-1"
+      : "text-gray-500 hover:text-black"
     }`;
 
   return (
@@ -81,7 +79,7 @@ export default function Navbar() {
                 <Link href="/categorias" className={linkClass("/categorias")}>
                   Categorías
                 </Link>
-                <Link href="/mis-tickets" className={linkClass("/mis-tickets")}>
+                <Link href="/clientes/mis-tickets" className={linkClass("/clientesmis-tickets")}>
                   Mis tickets
                 </Link>
               </>

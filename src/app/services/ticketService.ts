@@ -41,3 +41,11 @@ export async function getTicketById(id: number): Promise<Ticket> {
   const data = await res.json();
   return data.data;
 }
+
+export async function getTicketsByCliente(id: number): Promise<Ticket[]> {
+  const res = await fetch(`${API_URL}/api/tickets/cliente/${id}`);
+
+  if (!res.ok) throw new Error("Error al obtener tickets");
+  const data = await res.json();
+  return data.data;
+}
