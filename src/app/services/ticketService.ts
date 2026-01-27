@@ -49,3 +49,31 @@ export async function getTicketsByCliente(id: number): Promise<Ticket[]> {
   const data = await res.json();
   return data.data;
 }
+
+// ✅ Validar ticket por QR token
+export async function validarTicket(tokenQr: string) {
+  const res = await fetch(`${API_URL}/api/tickets/validar/${tokenQr}`, {
+    method: "POST",
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Error al validar ticket");
+  }
+  const data = await res.json();
+  return data.data;
+}
+
+// ✅ Consumir ticket por QR token
+export async function consumirTicket(tokenQr: string) {
+  const res = await fetch(`${API_URL}/api/tickets/consumir/${tokenQr}`, {
+    method: "POST",
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Error al consumir ticket");
+  }
+  const data = await res.json();
+  return data.data;
+}

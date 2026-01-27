@@ -1,12 +1,10 @@
-import Navbar from "@/app/components/navbar";
 import Footer from "@/app/components/footer";
 
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      
-      {/* Navbar */}
-      <Navbar />
+
+
 
       {/* Contenido */}
       <main className="flex flex-col items-center justify-center flex-1 text-center p-8 sm:p-20">

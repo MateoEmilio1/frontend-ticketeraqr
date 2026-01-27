@@ -12,9 +12,25 @@ export default function Navbar() {
   const [rol, setRol] = useState<Rol | null>(null);
 
   useEffect(() => {
-    const storedRol = localStorage.getItem("rol") as Rol | null;
-    setRol(storedRol);
-  }, []);
+    // Force check on mount and pathname change
+    const checkRole = () => {
+      const storedRol = localStorage.getItem("rol") as Rol | null;
+      console.log('rol:', storedRol);
+      setRol(storedRol);
+    };
+
+    checkRole();
+
+    // Optional: Listen to storage events if needed, but pathname change is usually enough for navigation
+    window.addEventListener('storage', checkRole);
+    return () => window.removeEventListener('storage', checkRole);
+
+  }, [pathname]);
+
+  if (pathname === "/login") return null;
+  // User request: "que se des-renderice cuando este es nulo"
+  // If we want to hide it when not logged in (and not on login page, which is already handled):
+  if (!rol) return null;
 
   const isActive = (href: string) => pathname.startsWith(href);
 
@@ -47,6 +63,9 @@ export default function Navbar() {
               <>
                 <Link href="/eventos" className={linkClass("/eventos")}>
                   Mis eventos
+                </Link>
+                <Link href="/organizaciones/scan" className={linkClass("/organizaciones/scan")}>
+                  Escanear
                 </Link>
                 <Link href="/categorias" className={linkClass("/categorias")}>
                   Categorías
@@ -88,7 +107,12 @@ export default function Navbar() {
           </div>
 
           {/* Derecha */}
-          <div className="w-24 h-6 border rounded" />
+          <div className="flex items-center gap-4">
+            <Link href="/login" className={linkClass("/login")}>
+              Cerrar sesión
+            </Link>
+            <div className="w-24 h-6 border rounded" />
+          </div>
         </div>
       </div>
     </nav>
