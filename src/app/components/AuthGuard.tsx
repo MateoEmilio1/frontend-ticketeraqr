@@ -1,29 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
-    const [authorized, setAuthorized] = useState(false);
+    const { user, loading } = useAuth();
 
     useEffect(() => {
-        // Check if running on client side
-        if (typeof window === "undefined") return;
+        if (loading) return;
 
-        const rol = localStorage.getItem("rol");
-        const publicRoutes = ["/login", "/registro"]; // Add other public routes if needed
+        const publicRoutes = ["/login", "/registro"];
 
-        if (!rol && !publicRoutes.includes(pathname)) {
-            setAuthorized(false);
+        if (!user && !publicRoutes.includes(pathname)) {
             router.push("/login");
-        } else {
-            setAuthorized(true);
         }
-    }, [router, pathname]);
+    }, [user, loading, router, pathname]);
 
-    if (!authorized && !["/login", "/registro"].includes(pathname)) {
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+            </div>
+        );
+    }
+
+    // If not user and not public, we are redirecting, so return null
+    if (!user && !["/login", "/registro"].includes(pathname)) {
         return null;
     }
 

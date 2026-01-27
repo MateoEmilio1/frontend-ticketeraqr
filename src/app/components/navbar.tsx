@@ -3,34 +3,16 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Rol } from "@/types/usuario";
+import { useAuth } from "@/context/AuthContext";
 
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [rol, setRol] = useState<Rol | null>(null);
-
-  useEffect(() => {
-    // Force check on mount and pathname change
-    const checkRole = () => {
-      const storedRol = localStorage.getItem("rol") as Rol | null;
-      console.log('rol:', storedRol);
-      setRol(storedRol);
-    };
-
-    checkRole();
-
-    // Optional: Listen to storage events if needed, but pathname change is usually enough for navigation
-    window.addEventListener('storage', checkRole);
-    return () => window.removeEventListener('storage', checkRole);
-
-  }, [pathname]);
+  const { user, logout } = useAuth();
+  const rol = user?.rol;
 
   if (pathname === "/login") return null;
-  // User request: "que se des-renderice cuando este es nulo"
-  // If we want to hide it when not logged in (and not on login page, which is already handled):
-  if (!rol) return null;
+  if (!user) return null;
 
   const isActive = (href: string) => pathname.startsWith(href);
 
@@ -108,9 +90,12 @@ export default function Navbar() {
 
           {/* Derecha */}
           <div className="flex items-center gap-4">
-            <Link href="/login" className={linkClass("/login")}>
+            <button
+              onClick={logout}
+              className={`text-sm font-medium text-gray-500 hover:text-black`}
+            >
               Cerrar sesión
-            </Link>
+            </button>
             <div className="w-24 h-6 border rounded" />
           </div>
         </div>
