@@ -8,7 +8,7 @@ export interface ApiResponse<T> {
   message: string;
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export async function getCategorias(): Promise<Categoria[]> {
   const res = await fetch(`${baseUrl}/api/categorias`);

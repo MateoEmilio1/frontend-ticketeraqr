@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Ticket } from "@/types/tickets";
 import { getTicketsByCliente } from "@/app/services/ticketService";
 import { useRouter } from "next/navigation";
-import { Calendar, Tag, QrCode, Ticket as TicketIcon, AlertCircle } from "lucide-react";
+import { Calendar, Tag, QrCode, Ticket as TicketIcon, AlertCircle, CreditCard } from "lucide-react";
 import QrModal from "@/app/components/ui/QrModal";
 
 export default function MisTicketsPage() {
@@ -23,11 +23,20 @@ export default function MisTicketsPage() {
                     router.push("/login");
                     return;
                 }
-                const data = await getTicketsByCliente(Number(idUsuario));
-                setTickets(data);
+
+                // 1. Obtener el cliente asociado al usuario
+                const { getClienteByUsuarioId } = await import("@/app/services/clientService");
+                const clientData = await getClienteByUsuarioId(Number(idUsuario));
+
+                // 2. Obtener los tickets usando el idCliente correcto
+                if (clientData && clientData.idCliente) {
+                    const data = await getTicketsByCliente(clientData.idCliente);
+                    setTickets(data);
+                }
             } catch (err) {
                 console.error(err);
-                setError("Error al cargar tus tickets. Por favor intenta nuevamente.");
+                // Si falla porque no tiene cliente, es normal mostrar lista vacía o error específico
+                setError("No se pudieron cargar tus tickets.");
             } finally {
                 setLoading(false);
             }
@@ -147,8 +156,15 @@ export default function MisTicketsPage() {
 
                                         <div className="flex items-center text-gray-600">
                                             <Tag className="w-4 h-4 mr-3 text-gray-400" />
-                                            <span className="text-sm">Acceso: {ticket.tipoTicket?.acceso || "Generla"}</span>
+                                            <span className="text-sm">Acceso: {ticket.tipoTicket?.acceso || "General"} {ticket.tipoTicket?.sector && `- Sector: ${ticket.tipoTicket.sector}`}</span>
                                         </div>
+
+                                        {ticket.metodoPago && (
+                                            <div className="flex items-center text-gray-600">
+                                                <CreditCard className="w-4 h-4 mr-3 text-gray-400" />
+                                                <span className="text-sm font-medium capitalize">Pago: {ticket.metodoPago}</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -157,14 +173,20 @@ export default function MisTicketsPage() {
                                     <div className="text-sm font-semibold text-gray-900">
                                         ${ticket.tipoTicket?.precio || 0}
                                     </div>
-                                    {ticket.tokenQr && (
-                                        <button
-                                            onClick={() => handleOpenQr(ticket)}
-                                            className="flex items-center text-sm text-indigo-600 font-medium hover:text-indigo-800 transition-colors"
-                                        >
-                                            <QrCode className="w-4 h-4 mr-2" />
-                                            Ver QR
-                                        </button>
+                                    {ticket.estado === 'pendiente' ? (
+                                        <span className="text-xs text-orange-600 font-medium italic">
+                                            Podrás ver el QR cuando finalices el pago
+                                        </span>
+                                    ) : (
+                                        ticket.tokenQr && (
+                                            <button
+                                                onClick={() => handleOpenQr(ticket)}
+                                                className="flex items-center text-sm text-indigo-600 font-medium hover:text-indigo-800 transition-colors"
+                                            >
+                                                <QrCode className="w-4 h-4 mr-2" />
+                                                Ver QR
+                                            </button>
+                                        )
                                     )}
                                 </div>
                             </div>

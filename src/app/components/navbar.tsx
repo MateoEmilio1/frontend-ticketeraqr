@@ -79,7 +79,7 @@ export default function Navbar() {
                 <Link href="/categorias" className={linkClass("/categorias")}>
                   Categorías
                 </Link>
-                <Link href="/clientes/mis-tickets" className={linkClass("/clientesmis-tickets")}>
+                <Link href="/clientes/mis-tickets" className={linkClass("/clientes/mis-tickets")}>
                   Mis tickets
                 </Link>
               </>
@@ -88,7 +88,26 @@ export default function Navbar() {
           </div>
 
           {/* Derecha */}
-          <div className="w-24 h-6 border rounded" />
+          <div className="flex items-center gap-4">
+            {rol ? (
+              <button
+                onClick={() => {
+                  localStorage.clear();
+                  window.location.href = "/login";
+                }}
+                className="text-sm font-semibold text-red-600 hover:text-red-700"
+              >
+                Salir
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="px-4 py-1.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition"
+              >
+                Entrar
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </nav>

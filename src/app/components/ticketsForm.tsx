@@ -19,10 +19,13 @@ export default function TicketForm({ onTicketCreated }: { onTicketCreated: (tick
     setLoading(true);
 
     try {
-      const res = await crearTicket(Number(idCliente), Number(idTipoTicket));
+      const res = await crearTicket({
+        idCliente: Number(idCliente),
+        idTipoTicket: Number(idTipoTicket),
+      });
       onTicketCreated(res.data);
       setMensaje(res.message);
-    } catch (error: unknown) {
+    } catch (error: any) {
       setMensaje(error.message);
     } finally {
       setLoading(false);

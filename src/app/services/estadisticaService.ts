@@ -1,5 +1,5 @@
 // src/services/eventoService.ts
-const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 export async function getEstadisticasEventos() {
   const res = await fetch(`${baseUrl}/api/eventos/estadisticas`, {
     method: "GET",
