@@ -6,31 +6,37 @@ import { getTicketsByCliente } from "@/app/services/ticketService";
 import { useRouter } from "next/navigation";
 import { Calendar, Tag, QrCode, Ticket as TicketIcon, AlertCircle, CreditCard } from "lucide-react";
 import QrModal from "@/app/components/ui/QrModal";
+import { useAuth } from "@/context/AuthContext";
 
 export default function MisTicketsPage() {
     const [tickets, setTickets] = useState<Ticket[]>([]);
-    const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true); // useAuth loading is better
+    const [dataLoading, setDataLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
 
     useEffect(() => {
         const fetchTickets = async () => {
+            // Wait for auth to be ready
+            if (authLoading) return;
+
+            if (!user || user.rol !== 'CLIENTE') {
+                router.push("/");
+                return;
+            }
+
             try {
-                const idUsuario = localStorage.getItem("idUsuario");
-                if (!idUsuario) {
-                    router.push("/login");
-                    return;
-                }
+                // User id is usually number in DB but string in state sometimes?
+                // In types/usuario.ts it says idUsuario?: number;
+                // In AuthContext it comes from DB.
+                const idUsuario = user.idUsuario;
+                console.log('id Usuario: ', idUsuario);
 
-                // 1. Obtener el cliente asociado al usuario
-                const { getClienteByUsuarioId } = await import("@/app/services/clientService");
-                const clientData = await getClienteByUsuarioId(Number(idUsuario));
-
-                // 2. Obtener los tickets usando el idCliente correcto
-                if (clientData && clientData.idCliente) {
-                    const data = await getTicketsByCliente(clientData.idCliente);
+                if (idUsuario) {
+                    const data = await getTicketsByCliente(Number(idUsuario));
                     setTickets(data);
                 }
             } catch (err) {
@@ -38,12 +44,20 @@ export default function MisTicketsPage() {
                 // Si falla porque no tiene cliente, es normal mostrar lista vacía o error específico
                 setError("No se pudieron cargar tus tickets.");
             } finally {
-                setLoading(false);
+                setDataLoading(false);
             }
         };
 
         fetchTickets();
-    }, [router]);
+    }, [user, authLoading, router]);
+
+    if (authLoading || dataLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+            </div>
+        );
+    }
 
     const handleOpenQr = (ticket: Ticket) => {
         setSelectedTicket(ticket);
@@ -80,13 +94,7 @@ export default function MisTicketsPage() {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-            </div>
-        );
-    }
+
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

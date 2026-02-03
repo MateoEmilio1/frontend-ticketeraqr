@@ -1,29 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Book } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { loginUsuario } from "@/app/services/loginService";
 import { LoginForm, LoginData } from "@/app/components/loginForm";
+import { useAuth } from "@/context/AuthContext";
 
 
 export default function LoginPage() {
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    // Optional: Clear session or handle defaults
+  }, []);
 
   const handleLogin = async (data: LoginData) => {
     setLoading(true);
     setError(null);
     try {
-      const responseData = await loginUsuario(data.email, data.password);
-      if (responseData && responseData.usuario) {
-        localStorage.setItem("rol", responseData.usuario.rol);
-        localStorage.setItem("idUsuario", responseData.usuario.idUsuario);
-        router.push("/");
-      }
-
+      await login(data.email, data.password);
+      // login in context handles redirection and storage
     } catch (err) {
       setError((err as Error).message);
     } finally {

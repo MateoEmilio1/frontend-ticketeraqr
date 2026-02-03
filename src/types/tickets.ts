@@ -3,6 +3,7 @@
 export interface Ticket {
   nroTicket: number;
   fechaCreacion: string;
+  fechaConsumo?: string | Date;
   tokenQr: string;
   idTipoTicket: number;
   idCliente: number;
@@ -11,14 +12,18 @@ export interface Ticket {
   cliente?: {
     nombre: string;
     apellido: string;
+    tipoDoc: string;
+    nroDoc: string;
   };
   tipoTicket?: {
     precio: number;
     acceso: string;
     sector?: string;
     evento?: {
+      idEvento: number;
       nombre: string;
       fechaHoraEvento: string;
+      idOrganizacion: number;
     };
   };
 }

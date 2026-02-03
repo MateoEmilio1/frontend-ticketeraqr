@@ -3,18 +3,16 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Rol } from "@/types/usuario";
+import { useAuth } from "@/context/AuthContext";
 
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [rol, setRol] = useState<Rol | null>(null);
+  const { user, logout } = useAuth();
+  const rol = user?.rol;
 
-  useEffect(() => {
-    const storedRol = localStorage.getItem("rol") as Rol | null;
-    setRol(storedRol);
-  }, []);
+  if (pathname === "/login") return null;
+  if (!user) return null;
 
   const isActive = (href: string) => pathname.startsWith(href);
 
@@ -47,6 +45,9 @@ export default function Navbar() {
               <>
                 <Link href="/eventos" className={linkClass("/eventos")}>
                   Mis eventos
+                </Link>
+                <Link href="/organizaciones/scan" className={linkClass("/organizaciones/scan")}>
+                  Escanear
                 </Link>
                 <Link href="/categorias" className={linkClass("/categorias")}>
                   Categorías
@@ -89,24 +90,13 @@ export default function Navbar() {
 
           {/* Derecha */}
           <div className="flex items-center gap-4">
-            {rol ? (
-              <button
-                onClick={() => {
-                  localStorage.clear();
-                  window.location.href = "/login";
-                }}
-                className="text-sm font-semibold text-red-600 hover:text-red-700"
-              >
-                Salir
-              </button>
-            ) : (
-              <Link
-                href="/login"
-                className="px-4 py-1.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition"
-              >
-                Entrar
-              </Link>
-            )}
+            <button
+              onClick={logout}
+              className={`text-sm font-medium text-gray-500 hover:text-black`}
+            >
+              Cerrar sesión
+            </button>
+            <div className="w-24 h-6 border rounded" />
           </div>
         </div>
       </div>
