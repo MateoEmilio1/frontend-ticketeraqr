@@ -1,5 +1,3 @@
-"use server";
-
 import { Cliente, ClienteFormData } from "@/types/cliente";
 
 export interface ApiResponse<T> {
@@ -8,7 +6,7 @@ export interface ApiResponse<T> {
   message: string;
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export async function getClientes(): Promise<Cliente[]> {
   const res = await fetch(`${baseUrl}/api/clientes`);
@@ -55,5 +53,12 @@ export async function deleteCliente(id: number): Promise<null> {
   if (!res.ok) throw new Error("Error al eliminar cliente");
   // Si la respuesta tiene formato { data, error, message } la puedes usar o simplemente ignorarla.
   const json = (await res.json()) as ApiResponse<null>;
+  return json.data;
+}
+
+export async function getClienteByUsuarioId(idUsuario: number): Promise<Cliente> {
+  const res = await fetch(`${baseUrl}/api/clientes/usuario/${idUsuario}`);
+  if (!res.ok) throw new Error("Error al obtener cliente por ID de usuario");
+  const json = (await res.json()) as ApiResponse<Cliente>;
   return json.data;
 }

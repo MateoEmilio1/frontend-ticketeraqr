@@ -80,7 +80,7 @@ export default function Navbar() {
                 <Link href="/categorias" className={linkClass("/categorias")}>
                   Categorías
                 </Link>
-                <Link href="/clientes/mis-tickets" className={linkClass("/clientesmis-tickets")}>
+                <Link href="/clientes/mis-tickets" className={linkClass("/clientes/mis-tickets")}>
                   Mis tickets
                 </Link>
               </>

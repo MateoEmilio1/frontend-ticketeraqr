@@ -8,7 +8,7 @@ export interface ApiResponse<T> {
     error: string
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export async function getOrganizaciones(): Promise<Organizacion[]> {
     const res = await fetch(`${baseUrl}/api/organizaciones`);
@@ -50,7 +50,7 @@ export async function deleteOrganizacion(id: number): Promise<Organizacion> {
     });
     if (!res.ok) throw new Error("Error al eliminar organizacion");
     // Si la respuesta tiene formato { data, error, message } la puedes usar o simplemente ignorarla.
-    
+
     // El tipo tendría que ser <null> en lugar de <Organizacion> ??.
     const json = (await res.json()) as ApiResponse<Organizacion>;
     return json.data;

@@ -43,6 +43,7 @@ export interface TipoTicketFormData {
   tipo: string;
   precio: number;
   acceso: string;
+  sector?: string;
   cantMaxPorTipo: number;
 }
 
@@ -64,5 +65,6 @@ export interface TipoTicket {
   tipo: string;
   precio: number;
   acceso: string;
+  sector?: string;
   cantMaxPorTipo: number;
 }
