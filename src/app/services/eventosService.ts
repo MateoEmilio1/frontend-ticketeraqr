@@ -60,3 +60,23 @@ export async function deleteEvento(id: number): Promise<void> {
   });
   if (!res.ok) throw new Error("Error al eliminar evento");
 }
+
+export interface ReporteHora {
+  hora: string;
+  cantidad: number;
+  recaudacion: number;
+}
+
+export async function getVentasReport(filters: any): Promise<ReporteHora[]> {
+  const params = new URLSearchParams();
+  if (filters.fechaInicio) params.append("fechaInicio", filters.fechaInicio);
+  if (filters.fechaFin) params.append("fechaFin", filters.fechaFin);
+  if (filters.idCategoria) params.append("idCategoria", filters.idCategoria);
+  if (filters.idTipoTicket) params.append("idTipoTicket", filters.idTipoTicket);
+
+  const res = await fetch(`${baseUrl}/api/eventos/reportes/ventas-hora?${params.toString()}`);
+  if (!res.ok) throw new Error("Error al obtener reporte");
+
+  const json = await res.json();
+  return json.data || [];
+}

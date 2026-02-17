@@ -56,10 +56,16 @@ export default function LoginPage() {
           <LoginForm onSubmit={handleLogin} loading={loading} />
         </div>
 
-        <div className="text-center text-sm text-gray-500">
+        <div className="text-center space-y-2 text-sm text-gray-500">
+          <Link
+            href="/forgot-password"
+            className="block text-indigo-600 hover:text-indigo-800 font-medium"
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
           <Link
             href="/"
-            className="hover:text-blue-600 transition-colors duration-200"
+            className="block hover:text-blue-600 transition-colors duration-200"
           >
             ← Volver al inicio
           </Link>
