@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { CategoriaForm } from "@/app/components/categoriaForm";
 import { CategoriaTable } from "@/app/components/categoriaTable";
+import RoleGuard from "@/app/components/RoleGuard";
 import ConfirmDeleteModal from "@/app/components/ui/confirmDeleteModal";
 import {
   getCategorias,
@@ -80,35 +81,37 @@ export default function CategoriasPage() {
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Gestión de Categorías</h1>
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div className="col-span-12 md:col-span-4">
-          <CategoriaForm
-            initialData={editingCategoria || undefined}
-            isEditing={!!editingCategoria}
-            onSubmit={handleFormSubmit}
-            onCancel={handleCancelEdit}
-            loading={loading}
-          />
+    <RoleGuard allowedRoles={["ADMIN"]}>
+      <div className="p-4">
+        <h1 className="text-2xl font-bold mb-4">Gestión de Categorías</h1>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div className="col-span-12 md:col-span-4">
+            <CategoriaForm
+              initialData={editingCategoria || undefined}
+              isEditing={!!editingCategoria}
+              onSubmit={handleFormSubmit}
+              onCancel={handleCancelEdit}
+              loading={loading}
+            />
+          </div>
+          <div className="col-span-12 md:col-span-8">
+            <CategoriaTable
+              categorias={categorias}
+              loading={loading}
+              onEdit={handleEdit}
+              onDelete={handleDeleteRequest}
+            />
+          </div>
         </div>
-        <div className="col-span-12 md:col-span-8">
-          <CategoriaTable
-            categorias={categorias}
-            loading={loading}
-            onEdit={handleEdit}
-            onDelete={handleDeleteRequest}
-          />
-        </div>
-      </div>
 
-      {showDeleteModal && categoriaToDelete && (
-        <ConfirmDeleteModal
-          onClose={() => setShowDeleteModal(false)}
-          onConfirm={handleDeleteConfirm}
-          itemName={categoriaToDelete.nombreCategoria}
-        />
-      )}
-    </div>
+        {showDeleteModal && categoriaToDelete && (
+          <ConfirmDeleteModal
+            onClose={() => setShowDeleteModal(false)}
+            onConfirm={handleDeleteConfirm}
+            itemName={categoriaToDelete.nombreCategoria}
+          />
+        )}
+      </div>
+    </RoleGuard>
   );
 }

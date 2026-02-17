@@ -13,9 +13,12 @@ import Navbar from "@/app/components/navbar";
 import Footer from "@/app/components/footer";
 import { Calendar, MapPin, Ticket as TicketIcon, CheckCircle, ArrowLeft, Loader2, CreditCard } from "lucide-react";
 import Link from "next/link";
-import TicketQr from "../../components/ticketsQR";
+import TicketQr from "../../../components/ticketsQR";
+
+import { useAuth } from "@/context/AuthContext";
 
 export default function PurchasePage() {
+    const { user } = useAuth();
     const { id } = useParams();
     const router = useRouter();
     const [evento, setEvento] = useState<Evento | null>(null);
@@ -101,11 +104,12 @@ export default function PurchasePage() {
             setPurchasing(true);
             setError(null);
 
-            const idUsuario = localStorage.getItem("idUsuario");
-            if (!idUsuario) {
+            if (!user?.idUsuario) {
                 router.push("/login");
                 return;
             }
+
+            const idUsuario = user.idUsuario;
 
             // Get the client ID for this user
             let cliente;
@@ -205,8 +209,6 @@ export default function PurchasePage() {
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-50">
-            <Navbar />
-
             <main className="flex-1 max-w-7xl mx-auto px-6 py-12 w-full">
                 <div className="mb-8">
                     <button

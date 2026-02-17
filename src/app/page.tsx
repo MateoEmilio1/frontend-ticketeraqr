@@ -1,23 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Navbar from "@/app/components/navbar";
+import { useAuth } from "@/context/AuthContext";
 import Footer from "@/app/components/footer";
 import EventGrid from "@/app/components/eventGrid";
 import { getEventos } from "@/app/services/eventosService";
 import { Evento } from "@/types/evento";
-import { Rol } from "@/types/usuario";
 import { Calendar, Ticket, User, Settings } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
+  const { user } = useAuth();
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [loading, setLoading] = useState(true);
-  const [rol, setRol] = useState<Rol | null>(null);
+  const rol = user?.rol;
 
   useEffect(() => {
-    const storedRol = localStorage.getItem("rol") as Rol | null;
-    setRol(storedRol);
     loadEventos();
   }, []);
 
@@ -34,10 +32,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50/50">
-
-      {/* Navbar */}
-      <Navbar />
-
       {/* Hero Section */}
       <header className="bg-white border-b relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 opacity-50"></div>
