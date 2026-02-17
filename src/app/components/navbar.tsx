@@ -3,19 +3,16 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Rol } from "@/types/usuario";
-import { User } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [rol, setRol] = useState<Rol | null>(null);
+  const { user, logout } = useAuth();
+  const rol = user?.rol;
 
-  useEffect(() => {
-    const storedRol = localStorage.getItem("rol") as Rol | null;
-    setRol(storedRol);
-  }, []);
+  if (pathname === "/login") return null;
+  if (!user) return null;
 
   const isActive = (href: string) => pathname.startsWith(href);
 
@@ -49,6 +46,9 @@ export default function Navbar() {
                 <Link href="/eventos" className={linkClass("/eventos")}>
                   Mis eventos
                 </Link>
+                <Link href="/organizaciones/scan" className={linkClass("/organizaciones/scan")}>
+                  Escanear
+                </Link>
                 <Link href="/categorias" className={linkClass("/categorias")}>
                   Categorías
                 </Link>
@@ -80,7 +80,7 @@ export default function Navbar() {
                 <Link href="/categorias" className={linkClass("/categorias")}>
                   Categorías
                 </Link>
-                <Link href="/clientes/mis-tickets" className={linkClass("/clientesmis-tickets")}>
+                <Link href="/clientes/mis-tickets" className={linkClass("/clientes/mis-tickets")}>
                   Mis tickets
                 </Link>
               </>
@@ -98,6 +98,13 @@ export default function Navbar() {
             <Link href="/perfil" className="p-2 text-gray-600 hover:text-indigo-600 transition-colors bg-gray-50 rounded-full">
               <User className="h-6 w-6" />
             </Link>
+            <button
+              onClick={logout}
+              className={`text-sm font-medium text-gray-500 hover:text-black`}
+            >
+              Cerrar sesión
+            </button>
+            <div className="w-24 h-6 border rounded" />
           </div>
         </div>
       </div>

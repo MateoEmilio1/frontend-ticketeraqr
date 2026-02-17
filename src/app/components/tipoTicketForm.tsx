@@ -1,4 +1,4 @@
-import { useState , useEffect } from "react"; // Asegúrate de importar useState
+import { useState, useEffect } from "react"; // Asegúrate de importar useState
 import { TipoTicketFormData } from "@/types/evento"; // Asegúrate de importar el tipo correspondiente
 
 interface TipoTicketFormProps {
@@ -19,6 +19,7 @@ export const TipoTicketForm: React.FC<TipoTicketFormProps> = ({
   const [formData, setFormData] = useState<TipoTicketFormData>({
     tipo: "",
     acceso: "",
+    sector: "",
     precio: 0,
     cantMaxPorTipo: 0,
   });
@@ -44,6 +45,7 @@ export const TipoTicketForm: React.FC<TipoTicketFormProps> = ({
     setFormData({
       tipo: "",
       acceso: "",
+      sector: "",
       precio: 0,
       cantMaxPorTipo: 0,
     });
@@ -72,6 +74,18 @@ export const TipoTicketForm: React.FC<TipoTicketFormProps> = ({
           onChange={handleChange}
           className="w-full p-2 border rounded"
           required
+        />
+      </div>
+
+      <div>
+        <label className="block mb-2 text-sm font-medium">Sector</label>
+        <input
+          type="text"
+          name="sector"
+          value={formData.sector || ""}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+          placeholder="Ej: Platea Alta B, Campo VIP"
         />
       </div>
 

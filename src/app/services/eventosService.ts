@@ -8,7 +8,7 @@ export interface ApiResponse<T> {
   message: string;
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 // Obtener todos los eventos
 export async function getEventos(): Promise<Evento[]> {
