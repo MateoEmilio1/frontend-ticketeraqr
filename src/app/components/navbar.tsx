@@ -86,10 +86,18 @@ export default function Navbar() {
               </>
             )}
 
+            {rol && (
+              <Link href="/perfil" className={linkClass("/perfil")}>
+                Mi Perfil
+              </Link>
+            )}
           </div>
 
           {/* Derecha */}
           <div className="flex items-center gap-4">
+            <Link href="/perfil" className="p-2 text-gray-600 hover:text-indigo-600 transition-colors bg-gray-50 rounded-full">
+              <User className="h-6 w-6" />
+            </Link>
             <button
               onClick={logout}
               className={`text-sm font-medium text-gray-500 hover:text-black`}
