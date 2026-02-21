@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { Ticket } from "@/types/tickets";
 import { getTicketsByCliente } from "@/app/services/ticketService";
 import { useRouter } from "next/navigation";
-import { Calendar, Tag, QrCode, Ticket as TicketIcon, AlertCircle, CreditCard } from "lucide-react";
+import { Calendar, Tag, QrCode, Ticket as TicketIcon, AlertCircle, CreditCard, Send, RefreshCcw } from "lucide-react";
 import QrModal from "@/app/components/ui/QrModal";
 import { useAuth } from "@/context/AuthContext";
+import { transferTicket, refundTicket } from "@/app/services/ticketService";
 
 export default function MisTicketsPage() {
     const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -15,6 +16,10 @@ export default function MisTicketsPage() {
     const [error, setError] = useState<string | null>(null);
     const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+    const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+    const [recipientEmail, setRecipientEmail] = useState("");
+    const [actionLoading, setActionLoading] = useState(false);
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
 
@@ -51,6 +56,17 @@ export default function MisTicketsPage() {
         fetchTickets();
     }, [user, authLoading, router]);
 
+    const fetchTickets = async () => {
+        if (!user || user.idUsuario === undefined) return;
+        try {
+            const data = await getTicketsByCliente(Number(user.idUsuario));
+            setTickets(data);
+        } catch (err) {
+            console.error(err);
+            setError("No se pudieron recargar tus tickets.");
+        }
+    };
+
     if (authLoading || dataLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -67,6 +83,47 @@ export default function MisTicketsPage() {
     const handleCloseQr = () => {
         setIsModalOpen(false);
         setSelectedTicket(null);
+    };
+
+    const handleOpenTransfer = (ticket: Ticket) => {
+        setSelectedTicket(ticket);
+        setIsTransferModalOpen(true);
+    };
+
+    const handleOpenRefund = (ticket: Ticket) => {
+        setSelectedTicket(ticket);
+        setIsRefundModalOpen(true);
+    };
+
+    const handleTransfer = async () => {
+        if (!selectedTicket || !recipientEmail) return;
+        setActionLoading(true);
+        try {
+            await transferTicket(selectedTicket.nroTicket, recipientEmail);
+            alert("Ticket transferido con éxito");
+            setIsTransferModalOpen(false);
+            setRecipientEmail("");
+            fetchTickets();
+        } catch (err) {
+            alert((err as Error).message);
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleRefund = async () => {
+        if (!selectedTicket) return;
+        setActionLoading(true);
+        try {
+            await refundTicket(selectedTicket.nroTicket);
+            alert("Reembolso procesado con éxito");
+            setIsRefundModalOpen(false);
+            fetchTickets();
+        } catch (err) {
+            alert((err as Error).message);
+        } finally {
+            setActionLoading(false);
+        }
     };
 
     const getStatusColor = (status: Ticket["estado"]) => {
@@ -186,15 +243,35 @@ export default function MisTicketsPage() {
                                             Podrás ver el QR cuando finalices el pago
                                         </span>
                                     ) : (
-                                        ticket.tokenQr && (
-                                            <button
-                                                onClick={() => handleOpenQr(ticket)}
-                                                className="flex items-center text-sm text-indigo-600 font-medium hover:text-indigo-800 transition-colors"
-                                            >
-                                                <QrCode className="w-4 h-4 mr-2" />
-                                                Ver QR
-                                            </button>
-                                        )
+                                        <div className="flex gap-2">
+                                            {ticket.estado === 'pagado' && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleOpenTransfer(ticket)}
+                                                        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                        title="Transferir Ticket"
+                                                    >
+                                                        <Send className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleOpenRefund(ticket)}
+                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                        title="Solicitar Reembolso"
+                                                    >
+                                                        <RefreshCcw className="w-4 h-4" />
+                                                    </button>
+                                                </>
+                                            )}
+                                            {ticket.tokenQr && (
+                                                <button
+                                                    onClick={() => handleOpenQr(ticket)}
+                                                    className="flex items-center text-sm text-indigo-600 font-medium hover:text-indigo-800 transition-colors ml-2"
+                                                >
+                                                    <QrCode className="w-4 h-4 mr-2" />
+                                                    Ver QR
+                                                </button>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -208,6 +285,78 @@ export default function MisTicketsPage() {
                 onClose={handleCloseQr}
                 ticket={selectedTicket}
             />
+
+            {/* Modal Transferencia */}
+            {isTransferModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 transform transition-all">
+                        <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <Send className="w-6 h-6 text-indigo-600" />
+                            ¿A quién querés transferir el ticket?
+                        </h3>
+                        <p className="text-gray-500 mb-6 text-sm">
+                            Ingresa el correo electrónico del usuario al que deseas transferir esta entrada. Esta acción no se puede deshacer.
+                        </p>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Email del destinatario</label>
+                                <input
+                                    type="email"
+                                    value={recipientEmail}
+                                    onChange={(e) => setRecipientEmail(e.target.value)}
+                                    placeholder="ejemplo@correo.com"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-gray-900"
+                                />
+                            </div>
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    onClick={() => setIsTransferModalOpen(false)}
+                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleTransfer}
+                                    disabled={actionLoading || !recipientEmail}
+                                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50"
+                                >
+                                    {actionLoading ? "Enviando..." : "Transferir"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Reembolso */}
+            {isRefundModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 transform transition-all">
+                        <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <RefreshCcw className="w-6 h-6 text-red-600" />
+                            Solicitar Reembolso
+                        </h3>
+                        <p className="text-gray-500 mb-6 text-sm">
+                            ¿Estás seguro que deseas solicitar el reembolso de este ticket? Se validará la política de cancelación del evento.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setIsRefundModalOpen(false)}
+                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleRefund}
+                                disabled={actionLoading}
+                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50"
+                            >
+                                {actionLoading ? "Procesando..." : "Confirmar Reembolso"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
