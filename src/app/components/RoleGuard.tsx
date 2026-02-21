@@ -17,7 +17,7 @@ export default function RoleGuard({ children, allowedRoles }: RoleGuardProps) {
     useEffect(() => {
         if (!loading) {
             if (!user || (user.rol && !allowedRoles.includes(user.rol))) {
-                router.push("/");
+                router.push("/no-autorizado");
             }
         }
     }, [user, loading, allowedRoles, router]);

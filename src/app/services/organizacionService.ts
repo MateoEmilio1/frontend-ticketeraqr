@@ -55,4 +55,9 @@ export async function deleteOrganizacion(id: number): Promise<Organizacion> {
     const json = (await res.json()) as ApiResponse<Organizacion>;
     return json.data;
 }
-
+export async function getOrganizacionByUsuarioId(idUsuario: number): Promise<Organizacion> {
+    const res = await fetch(`${baseUrl}/api/organizaciones/usuario/${idUsuario}`);
+    if (!res.ok) throw new Error("Error al obtener organizacion por ID de usuario");
+    const json = (await res.json()) as ApiResponse<Organizacion>;
+    return json.data;
+}
