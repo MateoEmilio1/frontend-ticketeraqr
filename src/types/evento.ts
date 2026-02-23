@@ -54,9 +54,10 @@ export interface Evento {
   fechaHoraEvento: Date;
   capacidadMax: number;
   descripcion?: string;
+  idOrganizacion: number;
   foto: string;
   idCategoria: number;
-  idOrganizacion: number;
+  estado?: 'ACTIVO' | 'CANCELADO' | 'FINALIZADO';
   tipoTickets: TipoTicket[];
 }
 
