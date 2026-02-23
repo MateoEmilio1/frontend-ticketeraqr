@@ -83,3 +83,33 @@ export async function obtenerQrPorTicket(nroTicket: number): Promise<{ qr: strin
   if (!res.ok) throw new Error("Error al obtener el código QR");
   return res.json();
 }
+
+// ✅ Transferir ticket a otro usuario por mail
+export async function transferTicket(nroTicket: number, mailNuevoDueño: string) {
+  const res = await fetch(`${API_URL}/api/tickets/transferir`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nroTicket, mailNuevoDueño }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Error al transferir ticket");
+  }
+  return res.json();
+}
+
+// ✅ Reembolsar ticket
+export async function refundTicket(nroTicket: number) {
+  const res = await fetch(`${API_URL}/api/tickets/reembolsar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nroTicket }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Error al reembolsar ticket");
+  }
+  return res.json();
+}
