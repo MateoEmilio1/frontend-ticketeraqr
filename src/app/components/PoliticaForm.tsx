@@ -1,5 +1,15 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Politica, PoliticaFormData } from "@/types/politica";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const politicaSchema = z.object({
+    diasReembolso: z.coerce
+        .number()
+        .int("Debe ser un número entero")
+        .min(1, "Debe ingresar al menos 1 día"),
+});
 
 interface PoliticaFormProps {
     politicaActual: Politica | null;
@@ -12,53 +22,26 @@ export const PoliticaForm: React.FC<PoliticaFormProps> = ({
     onSubmit,
     loading,
 }) => {
-    const [diasReembolso, setDiasReembolso] = useState<number | "">("");
-    const [error, setError] = useState<string>("");
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm<PoliticaFormData>({
+        resolver: zodResolver(politicaSchema) as any,
+    });
 
-    useEffect(() => {
-        setDiasReembolso("");
-    }, []);
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setError("");
-
-
-        if (diasReembolso === "" || diasReembolso <= 0) {
-            setError("Debe ingresar un número de días válido (mayor a 0).");
-            return;
-        }
-
-        if (!Number.isInteger(diasReembolso)) {
-            setError("El número de días debe ser un valor entero.");
-            return;
-        }
-
-        onSubmit({ diasReembolso: Number(diasReembolso) });
-        setDiasReembolso("");
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        if (value === "") {
-            setDiasReembolso("");
-        } else {
-            const numValue = Number(value);
-            if (!isNaN(numValue)) {
-                setDiasReembolso(numValue);
-            }
-        }
-        setError("");
+    const onFormSubmit = (data: PoliticaFormData) => {
+        onSubmit(data);
+        reset();
     };
 
     return (
         <form
-            onSubmit={handleSubmit}
+            onSubmit={handleSubmit(onFormSubmit)}
             className="space-y-4 p-4 bg-white rounded-lg shadow w-full max-w-md"
         >
-            <h2 className="text-lg font-semibold mb-4">
-                Crear Nueva Política
-            </h2>
+            <h2 className="text-lg font-semibold mb-4">Crear Nueva Política</h2>
 
             <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <p className="text-sm font-medium text-blue-900 mb-1">
@@ -66,7 +49,9 @@ export const PoliticaForm: React.FC<PoliticaFormProps> = ({
                 </p>
                 {politicaActual ? (
                     <div className="text-blue-700">
-                        <p className="text-2xl font-bold">{politicaActual.diasReembolso} días</p>
+                        <p className="text-2xl font-bold">
+                            {politicaActual.diasReembolso} días
+                        </p>
                         <p className="text-xs mt-1">
                             Vigente desde:{" "}
                             {new Date(politicaActual.fechaVigencia).toLocaleString("es-AR", {
@@ -84,21 +69,25 @@ export const PoliticaForm: React.FC<PoliticaFormProps> = ({
             </div>
 
             <div>
-                <label htmlFor="diasReembolso" className="block mb-2 text-sm font-medium">
+                <label
+                    htmlFor="diasReembolso"
+                    className="block mb-2 text-sm font-medium"
+                >
                     Nueva Política de Reembolso (días)
                 </label>
                 <input
                     type="number"
                     id="diasReembolso"
-                    name="diasReembolso"
-                    className="w-full p-2 border rounded"
-                    value={diasReembolso}
-                    onChange={handleChange}
+                    {...register("diasReembolso")}
+                    className={`w-full p-2 border rounded ${errors.diasReembolso ? "border-red-500" : "border-gray-300"
+                        }`}
                     placeholder="Ingrese número de días"
-                    min="1"
-                    step="1"
                 />
-                {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+                {errors.diasReembolso && (
+                    <p className="text-red-500 text-sm mt-1">
+                        {errors.diasReembolso.message}
+                    </p>
+                )}
             </div>
 
             <div className="flex gap-2 pt-2">

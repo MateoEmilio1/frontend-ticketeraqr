@@ -3,6 +3,13 @@
 import React from "react";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  email: z.string().email("Correo electrónico inválido"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+});
 
 export interface LoginData {
   email: string;
@@ -19,7 +26,9 @@ export function LoginForm({ onSubmit, loading }: LoginFormProps) {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginData>(); 
+  } = useForm<LoginData>({
+    resolver: zodResolver(loginSchema),
+  });
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full">
