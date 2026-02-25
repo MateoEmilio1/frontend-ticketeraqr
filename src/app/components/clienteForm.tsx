@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ClienteFormData } from "@/types/cliente";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +12,8 @@ const clienteSchema = z.object({
   tipoDoc: z.string().min(2, "Tipo de documento inválido"),
   nroDoc: z.string().min(7, "Número de documento inválido"),
   fechaNacimiento: z.string().min(1, "La fecha de nacimiento es requerida"),
+  telefono: z.string().optional().or(z.literal("")),
+  prefijo: z.string().optional(),
 });
 
 interface ClienteFormProps {
@@ -44,19 +46,36 @@ export const ClienteForm: React.FC<ClienteFormProps> = ({
       tipoDoc: "DNI",
       nroDoc: "",
       fechaNacimiento: "",
+      prefijo: "+54",
+      telefono: "",
     },
   });
+
+  const [countryCode, setCountryCode] = useState("+54");
 
   useEffect(() => {
     if (initialData) {
       Object.entries(initialData).forEach(([key, value]) => {
-        setValue(key as keyof ClienteFormData, value);
+        if (key === "telefono" && value) {
+          const match = value.match(/^(\+\d+)(.*)$/);
+          if (match) {
+            setCountryCode(match[1]);
+            setValue("prefijo", match[1]);
+            setValue("telefono", match[2]);
+          } else {
+            setValue("telefono", value);
+          }
+        } else {
+          setValue(key as keyof ClienteFormData, value);
+        }
       });
     }
   }, [initialData, setValue]);
 
-  const onFormSubmit = (data: ClienteFormData) => {
-    onSubmit(data);
+  const onFormSubmit = (data: any) => {
+    const fullPhone = data.telefono ? `${data.prefijo || countryCode}${data.telefono}` : "";
+    const { prefijo, ...submitData } = data;
+    onSubmit({ ...submitData, telefono: fullPhone });
   };
 
   return (
@@ -147,6 +166,34 @@ export const ClienteForm: React.FC<ClienteFormProps> = ({
           className={`w-full p-2 border rounded ${errors.fechaNacimiento ? 'border-red-500' : ''}`}
         />
         {errors.fechaNacimiento && <p className="text-red-500 text-xs mt-1">{errors.fechaNacimiento.message}</p>}
+      </div>
+
+      <div>
+        <label className="block mb-2 text-sm font-medium">Teléfono</label>
+        <div className="flex gap-2">
+          <select
+            {...register("prefijo")}
+            value={countryCode}
+            onChange={(e) => setCountryCode(e.target.value)}
+            className="w-24 p-2 border rounded bg-gray-50"
+          >
+            <option value="+54">+54 (AR)</option>
+            <option value="+598">+598 (UY)</option>
+            <option value="+56">+56 (CL)</option>
+            <option value="+55">+55 (BR)</option>
+            <option value="+595">+595 (PY)</option>
+            <option value="+51">+51 (PE)</option>
+            <option value="+1">+1 (US/CA)</option>
+            <option value="+34">+34 (ES)</option>
+          </select>
+          <input
+            type="tel"
+            {...register("telefono")}
+            className={`flex-1 p-2 border rounded ${errors.telefono ? 'border-red-500' : ''}`}
+            placeholder="Ej: 1122334455"
+          />
+        </div>
+        {errors.telefono && <p className="text-red-500 text-xs mt-1">{errors.telefono.message}</p>}
       </div>
 
       <div className="flex gap-2 mt-4">

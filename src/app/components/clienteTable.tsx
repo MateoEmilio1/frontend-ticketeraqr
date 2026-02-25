@@ -30,6 +30,9 @@ export const ClienteTable: React.FC<ClienteTableProps> = ({
               Nacimiento
             </th>
             <th className="px-4 py-3 text-left text-sm font-medium">
+              Teléfono
+            </th>
+            <th className="px-4 py-3 text-left text-sm font-medium">
               Acciones
             </th>
           </tr>
@@ -47,6 +50,7 @@ export const ClienteTable: React.FC<ClienteTableProps> = ({
               <td className="px-4 py-3">
                 {new Date(cliente.fechaNacimiento).toLocaleDateString()}
               </td>
+              <td className="px-4 py-3">{cliente.telefono || "-"}</td>
               <td className="px-4 py-3 space-x-2">
                 <button
                   onClick={() => onEdit(cliente)}
