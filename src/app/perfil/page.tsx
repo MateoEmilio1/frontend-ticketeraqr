@@ -25,6 +25,17 @@ export default function PerfilPage() {
 
                 if (userRole === "CLIENTE") {
                     const clientData = await getClienteByUsuarioId(parseInt(userId));
+
+                    let prefijo = "+54";
+                    let tel = clientData.telefono || "";
+                    if (tel.startsWith("+")) {
+                        const match = tel.match(/^(\+\d+)(.*)$/);
+                        if (match) {
+                            prefijo = match[1];
+                            tel = match[2];
+                        }
+                    }
+
                     setProfile({
                         rol: "CLIENTE",
                         idCliente: clientData.idCliente,
@@ -34,8 +45,10 @@ export default function PerfilPage() {
                         tipoDoc: clientData.tipoDoc,
                         nroDoc: clientData.nroDoc,
                         fechaNacimiento: new Date(clientData.fechaNacimiento).toISOString().split('T')[0],
+                        telefono: tel,
+                        prefijo: prefijo,
                         contraseña: ""
-                    });
+                    } as any);
                 } else if (userRole === "ORGANIZACION") {
                     const orgData = await getOrganizacionByUsuarioId(parseInt(userId));
                     setProfile({
@@ -68,7 +81,8 @@ export default function PerfilPage() {
 
         try {
             if (profile.rol === "CLIENTE" && profile.idCliente) {
-                await updateCliente(profile.idCliente, profile);
+                const fullPhone = profile.telefono ? `${(profile as any).prefijo || "+54"}${profile.telefono}` : "";
+                await updateCliente(profile.idCliente, { ...profile, telefono: fullPhone });
             } else if (profile.rol === "ORGANIZACION" && profile.idOrganizacion) {
                 await updateOrganizacion(profile.idOrganizacion, profile);
             }
@@ -190,6 +204,32 @@ export default function PerfilPage() {
                                             className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none"
                                             required
                                         />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-gray-700">Teléfono</label>
+                                        <div className="flex gap-2">
+                                            <select
+                                                value={(profile as any).prefijo || "+54"}
+                                                onChange={e => setProfile(prev => ({ ...prev!, prefijo: e.target.value } as any))}
+                                                className="w-28 px-2 py-3 border-2 border-gray-100 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none bg-white"
+                                            >
+                                                <option value="+54">+54 (AR)</option>
+                                                <option value="+598">+598 (UY)</option>
+                                                <option value="+56">+56 (CL)</option>
+                                                <option value="+55">+55 (BR)</option>
+                                                <option value="+595">+595 (PY)</option>
+                                                <option value="+51">+51 (PE)</option>
+                                                <option value="+1">+1 (US/CA)</option>
+                                                <option value="+34">+34 (ES)</option>
+                                            </select>
+                                            <input
+                                                type="tel"
+                                                value={profile.telefono || ""}
+                                                onChange={e => setProfile(prev => ({ ...prev!, telefono: e.target.value } as any))}
+                                                className="flex-1 px-4 py-3 border-2 border-gray-100 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none"
+                                                placeholder="Tu número de teléfono"
+                                            />
+                                        </div>
                                     </div>
                                 </>
                             )}

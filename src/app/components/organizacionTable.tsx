@@ -61,23 +61,10 @@ const OrganizacionTable: React.FC = () => {
   const saveChanges = async () => {
     if (editingId === null) return;
     setLoading(true);
-    // Construimos el payload de actualización, que actualiza los campos directos y la relación usuario
-    const payload = {
-      nombre: editData.nombre,
-      ubicacion: editData.ubicacion,
-      cuit: editData.cuit,
-      usuario: {
-        update: {
-          mail: editData.mail,
-          // Se envía la contraseña tal cual, incluso si es vacía (puedes agregar validación si es necesario)
-          contraseña: editData.contraseña,
-        },
-      },
-    };
     try {
       const updated = await updateOrganizacion(
         editingId,
-        payload as OrganizacionFormData
+        editData
       );
       setOrganizaciones((prev) =>
         prev.map((org) =>

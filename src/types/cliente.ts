@@ -6,6 +6,8 @@ export interface ClienteFormData {
   tipoDoc: string;
   nroDoc: string;
   fechaNacimiento: string;
+  telefono?: string;
+  prefijo?: string;
   idCliente?: number;
 }
 
@@ -16,6 +18,7 @@ export interface Cliente {
   tipoDoc: string;
   nroDoc: string;
   fechaNacimiento: Date;
+  telefono?: string;
   usuario: {
     mail: string;
     rol: Rol;

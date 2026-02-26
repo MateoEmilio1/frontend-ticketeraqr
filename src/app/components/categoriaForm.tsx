@@ -1,5 +1,13 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Categoria } from "@/types/categoria";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const categoriaSchema = z.object({
+  idCategoria: z.number(),
+  nombreCategoria: z.string().min(3, "El nombre de la categoría debe tener al menos 3 caracteres"),
+});
 
 interface CategoriaFormProps {
   initialData?: Categoria;
@@ -16,36 +24,33 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
   onCancel,
   loading,
 }) => {
-  const [formData, setFormData] = useState<Categoria>({
-    idCategoria: 0,
-    nombreCategoria: "",
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<Categoria>({
+    resolver: zodResolver(categoriaSchema) as any,
+    defaultValues: initialData || {
+      idCategoria: 0,
+      nombreCategoria: "",
+    },
   });
 
-  const [error, setError] = useState<string>("");
-
   useEffect(() => {
-    if (initialData) setFormData(initialData);
-  }, [initialData]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError("");
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.nombreCategoria.trim()) {
-      setError("El nombre de la categoría es obligatorio.");
-      return;
+    if (initialData) {
+      setValue("idCategoria", initialData.idCategoria);
+      setValue("nombreCategoria", initialData.nombreCategoria);
     }
+  }, [initialData, setValue]);
 
-    onSubmit(formData);
+  const onFormSubmit = (data: Categoria) => {
+    onSubmit(data);
   };
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(onFormSubmit)}
       className="space-y-4 p-4 bg-white rounded-lg shadow w-full max-w-md"
     >
       <div>
@@ -55,12 +60,10 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
         <input
           type="text"
           id="nombreCategoria"
-          name="nombreCategoria"
-          className="w-full p-2 border rounded"
-          value={formData.nombreCategoria}
-          onChange={handleChange}
+          {...register("nombreCategoria")}
+          className={`w-full p-2 border rounded ${errors.nombreCategoria ? 'border-red-500' : 'border-gray-300'}`}
         />
-        {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+        {errors.nombreCategoria && <p className="text-red-500 text-sm mt-1">{errors.nombreCategoria.message}</p>}
       </div>
 
       <div className="flex gap-2 pt-2">

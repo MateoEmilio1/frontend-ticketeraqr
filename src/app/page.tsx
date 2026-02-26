@@ -5,30 +5,48 @@ import { useAuth } from "@/context/AuthContext";
 import Footer from "@/app/components/footer";
 import EventGrid from "@/app/components/eventGrid";
 import { getEventos } from "@/app/services/eventosService";
+import { getCategorias } from "@/app/services/categoriaService";
 import { Evento } from "@/types/evento";
-import { Calendar, Ticket, User, Settings } from "lucide-react";
+import { Categoria } from "@/types/categoria";
+import { Calendar, Ticket, User, Settings, Filter } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
   const { user } = useAuth();
   const [eventos, setEventos] = useState<Evento[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [filteredEventos, setFilteredEventos] = useState<Evento[]>([]);
+  const [selectedCategoria, setSelectedCategoria] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const rol = user?.rol;
 
-  useEffect(() => {
-    loadEventos();
-  }, []);
-
-  const loadEventos = async () => {
+  const loadData = async () => {
     try {
-      const data = await getEventos();
-      setEventos(data);
+      const [eventosData, categoriasData] = await Promise.all([
+        getEventos(),
+        getCategorias()
+      ]);
+      setEventos(eventosData);
+      setFilteredEventos(eventosData);
+      setCategorias(categoriasData);
     } catch (error) {
-      console.error("Error cargando eventos:", error);
+      console.error("Error cargando datos:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCategoria === "all") {
+      setFilteredEventos(eventos);
+    } else {
+      setFilteredEventos(eventos.filter(e => e.idCategoria === parseInt(selectedCategoria)));
+    }
+  }, [selectedCategoria, eventos]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50/50">
@@ -109,13 +127,32 @@ export default function Home() {
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Próximos Eventos</h2>
             <p className="text-gray-500">Explorá nuestra selección de eventos exclusivos</p>
           </div>
-          <div className="flex gap-2">
-            <button className="px-4 py-2 bg-white border rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">Hoy</button>
-            <button className="px-4 py-2 bg-white border rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">Este finde</button>
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex items-center gap-2 bg-white border rounded-xl px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+              <Filter className="w-4 h-4 text-gray-400" />
+              <select
+                title="Filtrar por categoría"
+                className="bg-transparent border-none text-sm font-medium text-gray-700 outline-none pr-4"
+                value={selectedCategoria}
+                onChange={(e) => setSelectedCategoria(e.target.value)}
+              >
+                <option value="all">Todas las categorías</option>
+                {categorias.map(cat => (
+                  <option key={cat.idCategoria} value={cat.idCategoria}>
+                    {cat.nombreCategoria}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex gap-2">
+              <button className="px-4 py-2 bg-white border rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-blue-200 transition-all shadow-sm">Hoy</button>
+              <button className="px-4 py-2 bg-white border rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-blue-200 transition-all shadow-sm">Este finde</button>
+            </div>
           </div>
         </div>
 
-        <EventGrid eventos={eventos} loading={loading} />
+        <EventGrid eventos={filteredEventos} loading={loading} />
       </main>
 
       {/* Footer */}

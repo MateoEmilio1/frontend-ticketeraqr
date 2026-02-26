@@ -1,5 +1,20 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ClienteFormData } from "@/types/cliente";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const clienteSchema = z.object({
+  mail: z.string().email("Email inválido"),
+  contraseña: z.string().min(6, "La contraseña debe tener al menos 6 caracteres").optional().or(z.literal("")),
+  nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
+  apellido: z.string().min(2, "El apellido debe tener al menos 2 caracteres"),
+  tipoDoc: z.string().min(2, "Tipo de documento inválido"),
+  nroDoc: z.string().min(7, "Número de documento inválido"),
+  fechaNacimiento: z.string().min(1, "La fecha de nacimiento es requerida"),
+  telefono: z.string().optional().or(z.literal("")),
+  prefijo: z.string().optional(),
+});
 
 interface ClienteFormProps {
   initialData?: ClienteFormData;
@@ -16,47 +31,67 @@ export const ClienteForm: React.FC<ClienteFormProps> = ({
   onCancel,
   loading,
 }) => {
-  const [formData, setFormData] = useState<ClienteFormData>({
-    mail: "",
-    contraseña: "",
-    nombre: "",
-    apellido: "",
-    tipoDoc: "DNI",
-    nroDoc: "",
-    fechaNacimiento: "",
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<ClienteFormData>({
+    resolver: zodResolver(clienteSchema) as any,
+    defaultValues: initialData || {
+      mail: "",
+      contraseña: "",
+      nombre: "",
+      apellido: "",
+      tipoDoc: "DNI",
+      nroDoc: "",
+      fechaNacimiento: "",
+      prefijo: "+54",
+      telefono: "",
+    },
   });
 
+  const [countryCode, setCountryCode] = useState("+54");
+
   useEffect(() => {
-    if (initialData) setFormData(initialData);
-  }, [initialData]);
+    if (initialData) {
+      Object.entries(initialData).forEach(([key, value]) => {
+        if (key === "telefono" && value) {
+          const match = value.match(/^(\+\d+)(.*)$/);
+          if (match) {
+            setCountryCode(match[1]);
+            setValue("prefijo", match[1]);
+            setValue("telefono", match[2]);
+          } else {
+            setValue("telefono", value);
+          }
+        } else {
+          setValue(key as keyof ClienteFormData, value);
+        }
+      });
+    }
+  }, [initialData, setValue]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
+  const onFormSubmit = (data: any) => {
+    const fullPhone = data.telefono ? `${data.prefijo || countryCode}${data.telefono}` : "";
+    const { prefijo, ...submitData } = data;
+    onSubmit({ ...submitData, telefono: fullPhone });
   };
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(onFormSubmit)}
       className="space-y-4 p-4 bg-white rounded-lg shadow"
     >
       <div>
         <label className="block mb-2 text-sm font-medium">Email</label>
         <input
           type="email"
-          name="mail"
-          value={formData.mail}
-          onChange={handleChange}
+          {...register("mail")}
           disabled={isEditing}
-          className="w-full p-2 border rounded"
-          required
+          className={`w-full p-2 border rounded ${errors.mail ? 'border-red-500' : ''}`}
         />
+        {errors.mail && <p className="text-red-500 text-xs mt-1">{errors.mail.message}</p>}
       </div>
 
       {!isEditing && (
@@ -64,12 +99,10 @@ export const ClienteForm: React.FC<ClienteFormProps> = ({
           <label className="block mb-2 text-sm font-medium">Contraseña</label>
           <input
             type="password"
-            name="contraseña"
-            value={formData.contraseña || ""}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            required={!isEditing}
+            {...register("contraseña")}
+            className={`w-full p-2 border rounded ${errors.contraseña ? 'border-red-500' : ''}`}
           />
+          {errors.contraseña && <p className="text-red-500 text-xs mt-1">{errors.contraseña.message}</p>}
         </div>
       )}
 
@@ -78,24 +111,20 @@ export const ClienteForm: React.FC<ClienteFormProps> = ({
           <label className="block mb-2 text-sm font-medium">Nombre</label>
           <input
             type="text"
-            name="nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            required
+            {...register("nombre")}
+            className={`w-full p-2 border rounded ${errors.nombre ? 'border-red-500' : ''}`}
           />
+          {errors.nombre && <p className="text-red-500 text-xs mt-1">{errors.nombre.message}</p>}
         </div>
 
         <div>
           <label className="block mb-2 text-sm font-medium">Apellido</label>
           <input
             type="text"
-            name="apellido"
-            value={formData.apellido}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            required
+            {...register("apellido")}
+            className={`w-full p-2 border rounded ${errors.apellido ? 'border-red-500' : ''}`}
           />
+          {errors.apellido && <p className="text-red-500 text-xs mt-1">{errors.apellido.message}</p>}
         </div>
       </div>
 
@@ -105,9 +134,7 @@ export const ClienteForm: React.FC<ClienteFormProps> = ({
             Tipo Documento
           </label>
           <select
-            name="tipoDoc"
-            value={formData.tipoDoc}
-            onChange={handleChange}
+            {...register("tipoDoc")}
             className="w-full p-2 border rounded"
           >
             <option value="DNI">DNI</option>
@@ -122,12 +149,10 @@ export const ClienteForm: React.FC<ClienteFormProps> = ({
           </label>
           <input
             type="text"
-            name="nroDoc"
-            value={formData.nroDoc}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            required
+            {...register("nroDoc")}
+            className={`w-full p-2 border rounded ${errors.nroDoc ? 'border-red-500' : ''}`}
           />
+          {errors.nroDoc && <p className="text-red-500 text-xs mt-1">{errors.nroDoc.message}</p>}
         </div>
       </div>
 
@@ -137,12 +162,38 @@ export const ClienteForm: React.FC<ClienteFormProps> = ({
         </label>
         <input
           type="date"
-          name="fechaNacimiento"
-          value={formData.fechaNacimiento}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
+          {...register("fechaNacimiento")}
+          className={`w-full p-2 border rounded ${errors.fechaNacimiento ? 'border-red-500' : ''}`}
         />
+        {errors.fechaNacimiento && <p className="text-red-500 text-xs mt-1">{errors.fechaNacimiento.message}</p>}
+      </div>
+
+      <div>
+        <label className="block mb-2 text-sm font-medium">Teléfono</label>
+        <div className="flex gap-2">
+          <select
+            {...register("prefijo")}
+            value={countryCode}
+            onChange={(e) => setCountryCode(e.target.value)}
+            className="w-24 p-2 border rounded bg-gray-50"
+          >
+            <option value="+54">+54 (AR)</option>
+            <option value="+598">+598 (UY)</option>
+            <option value="+56">+56 (CL)</option>
+            <option value="+55">+55 (BR)</option>
+            <option value="+595">+595 (PY)</option>
+            <option value="+51">+51 (PE)</option>
+            <option value="+1">+1 (US/CA)</option>
+            <option value="+34">+34 (ES)</option>
+          </select>
+          <input
+            type="tel"
+            {...register("telefono")}
+            className={`flex-1 p-2 border rounded ${errors.telefono ? 'border-red-500' : ''}`}
+            placeholder="Ej: 1122334455"
+          />
+        </div>
+        {errors.telefono && <p className="text-red-500 text-xs mt-1">{errors.telefono.message}</p>}
       </div>
 
       <div className="flex gap-2 mt-4">

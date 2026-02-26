@@ -1,50 +1,54 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { createOrganizacion } from "@/app/services/organizacionService";
 import { OrganizacionFormData } from "@/types/organizacion";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const organizacionSchema = z.object({
+  nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
+  ubicacion: z.string().min(5, "La ubicación debe ser más descriptiva"),
+  cuit: z.string().regex(/^\d{11}$/, "CUIT debe tener 11 dígitos"),
+  mail: z.string().email("Email inválido"),
+  contraseña: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+});
 
 const OrganizacionForm: React.FC = () => {
-  const [formData, setFormData] = useState<OrganizacionFormData>({
-    nombre: "",
-    ubicacion: "",
-    cuit: "",
-    mail: "",
-    contraseña: "",
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<OrganizacionFormData>({
+    resolver: zodResolver(organizacionSchema) as any,
+    defaultValues: {
+      nombre: "",
+      ubicacion: "",
+      cuit: "",
+      mail: "",
+      contraseña: "",
+    },
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const [serverError, setServerError] = React.useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+  const onFormSubmit = async (data: OrganizacionFormData) => {
+    setServerError(null);
     try {
-      await createOrganizacion(formData);
-      // Reinicia el formulario tras crear exitosamente
-      setFormData({
-        nombre: "",
-        ubicacion: "",
-        cuit: "",
-        mail: "",
-        contraseña: "",
-      });
+      await createOrganizacion(data);
+      alert("Organización creada con éxito");
+      reset();
     } catch (err: any) {
       console.error("Error en createOrganizacion:", err);
-      setError(err?.message || "Error al crear organización");
-    } finally {
-      setLoading(false);
+      setServerError(err?.message || "Error al crear organización");
     }
   };
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(onFormSubmit)}
       className="space-y-4 p-4 bg-white rounded-lg shadow"
     >
       <div>
@@ -57,12 +61,10 @@ const OrganizacionForm: React.FC = () => {
         <input
           type="text"
           id="nombre"
-          name="nombre"
-          value={formData.nombre}
-          onChange={handleChange}
-          required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+          {...register("nombre")}
+          className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm ${errors.nombre ? 'border-red-500' : 'border-gray-300'}`}
         />
+        {errors.nombre && <p className="text-red-500 text-xs mt-1">{errors.nombre.message}</p>}
       </div>
       <div>
         <label
@@ -74,12 +76,10 @@ const OrganizacionForm: React.FC = () => {
         <input
           type="text"
           id="cuit"
-          name="cuit"
-          value={formData.cuit}
-          onChange={handleChange}
-          required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+          {...register("cuit")}
+          className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm ${errors.cuit ? 'border-red-500' : 'border-gray-300'}`}
         />
+        {errors.cuit && <p className="text-red-500 text-xs mt-1">{errors.cuit.message}</p>}
       </div>
       <div>
         <label
@@ -91,12 +91,10 @@ const OrganizacionForm: React.FC = () => {
         <input
           type="text"
           id="ubicacion"
-          name="ubicacion"
-          value={formData.ubicacion}
-          onChange={handleChange}
-          required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+          {...register("ubicacion")}
+          className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm ${errors.ubicacion ? 'border-red-500' : 'border-gray-300'}`}
         />
+        {errors.ubicacion && <p className="text-red-500 text-xs mt-1">{errors.ubicacion.message}</p>}
       </div>
       <div>
         <label
@@ -108,12 +106,10 @@ const OrganizacionForm: React.FC = () => {
         <input
           type="password"
           id="contraseña"
-          name="contraseña"
-          value={formData.contraseña}
-          onChange={handleChange}
-          required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+          {...register("contraseña")}
+          className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm ${errors.contraseña ? 'border-red-500' : 'border-gray-300'}`}
         />
+        {errors.contraseña && <p className="text-red-500 text-xs mt-1">{errors.contraseña.message}</p>}
       </div>
       <div>
         <label
@@ -125,21 +121,19 @@ const OrganizacionForm: React.FC = () => {
         <input
           type="email"
           id="mail"
-          name="mail"
-          value={formData.mail}
-          onChange={handleChange}
-          required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+          {...register("mail")}
+          className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm ${errors.mail ? 'border-red-500' : 'border-gray-300'}`}
         />
+        {errors.mail && <p className="text-red-500 text-xs mt-1">{errors.mail.message}</p>}
       </div>
-      {error && <p className="text-red-500">{error}</p>}
+      {serverError && <p className="text-red-500 text-sm">{serverError}</p>}
       <div className="flex gap-2 mt-4">
         <button
           type="submit"
-          disabled={loading}
+          disabled={isSubmitting}
           className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 disabled:bg-gray-400"
         >
-          {loading ? "Guardando..." : "Crear"}
+          {isSubmitting ? "Guardando..." : "Crear"}
         </button>
       </div>
     </form>

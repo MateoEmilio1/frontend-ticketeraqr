@@ -1,5 +1,21 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { EventoFormData } from "@/types/evento";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const eventoSchema = z.object({
+  nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
+  descripcion: z.string().optional(),
+  foto: z.string().min(1, "La foto es requerida"),
+  fechaHoraEvento: z.string().min(1, "La fecha del evento es requerida"),
+  fechaCreacion: z.string().min(1, "La fecha de creación es requerida"),
+  capacidadMax: z.preprocess((val) => Number(val), z.number().min(1, "La capacidad debe ser al menos 1")),
+  idCategoria: z.preprocess((val) => Number(val), z.number().min(1, "Seleccione una categoría")),
+  idOrganizacion: z.preprocess((val) => Number(val), z.number().min(1, "Seleccione una organización")),
+  idEvento: z.number().optional(),
+  tipoTickets: z.array(z.any()).default([]),
+});
 
 interface EventoFormProps {
   initialData?: EventoFormData;
@@ -16,89 +32,71 @@ export const EventoForm: React.FC<EventoFormProps> = ({
   onCancel,
   loading,
 }) => {
-  const [formData, setFormData] = useState<EventoFormData>({
-    nombre: "",
-    fechaCreacion: "",
-    fechaHoraEvento: "",
-    descripcion: "",
-    foto: "",
-    capacidadMax: 0,
-    tipoTickets: [],
-    idCategoria: 1,
-    idOrganizacion: 1,
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<EventoFormData>({
+    resolver: zodResolver(eventoSchema) as any,
+    defaultValues: initialData || {
+      nombre: "",
+      fechaCreacion: new Date().toISOString().slice(0, 16),
+      fechaHoraEvento: "",
+      descripcion: "",
+      foto: "",
+      capacidadMax: 0,
+      tipoTickets: [],
+      idCategoria: 1,
+      idOrganizacion: 1,
+    },
   });
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      Object.entries(initialData).forEach(([key, value]) => {
+        setValue(key as keyof EventoFormData, value);
+      });
     }
-  }, [initialData]);
+  }, [initialData, setValue]);
 
-  // In your EventoForm component, modify the handleChange function
-const handleChange = (
-  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-) => {
-  const { name, value } = e.target;
-  if (
-    name === "capacidadMax" ||
-    name === "idCategoria" ||
-    name === "idOrganizacion"
-  ) {
-    // Parse the value as an integer and handle invalid inputs
-    const parsedValue = value;
-    setFormData({ 
-      ...formData, 
-      [name]: parsedValue
-    });
-  } else {
-    setFormData({ ...formData, [name]: value });
-  }
-};
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
+  const onFormSubmit = (data: EventoFormData) => {
+    onSubmit(data);
   };
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(onFormSubmit)}
       className="space-y-4 p-4 bg-white rounded-lg shadow"
     >
       <div>
         <label className="block mb-2 text-sm font-medium">Nombre</label>
         <input
           type="text"
-          name="nombre"
-          value={formData.nombre}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
+          {...register("nombre")}
+          className={`w-full p-2 border rounded ${errors.nombre ? 'border-red-500' : 'border-gray-300'}`}
         />
+        {errors.nombre && <p className="text-red-500 text-xs mt-1">{errors.nombre.message}</p>}
       </div>
 
       <div>
         <label className="block mb-2 text-sm font-medium">Descripción</label>
         <textarea
-          name="descripcion"
-          value={formData.descripcion}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
+          {...register("descripcion")}
+          className={`w-full p-2 border rounded ${errors.descripcion ? 'border-red-500' : 'border-gray-300'}`}
           rows={3}
-          required
         />
+        {errors.descripcion && <p className="text-red-500 text-xs mt-1">{errors.descripcion.message}</p>}
       </div>
 
       <div>
-        <label className="block mb-2 text-sm font-medium">Foto</label>
+        <label className="block mb-2 text-sm font-medium">Foto (URL)</label>
         <input
           type="text"
-          name="foto"
-          value={formData.foto}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
+          {...register("foto")}
+          className={`w-full p-2 border rounded ${errors.foto ? 'border-red-500' : 'border-gray-300'}`}
         />
+        {errors.foto && <p className="text-red-500 text-xs mt-1">{errors.foto.message}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -108,12 +106,10 @@ const handleChange = (
           </label>
           <input
             type="datetime-local"
-            name="fechaHoraEvento"
-            value={formData.fechaHoraEvento}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            required
+            {...register("fechaHoraEvento")}
+            className={`w-full p-2 border rounded ${errors.fechaHoraEvento ? 'border-red-500' : 'border-gray-300'}`}
           />
+          {errors.fechaHoraEvento && <p className="text-red-500 text-xs mt-1">{errors.fechaHoraEvento.message}</p>}
         </div>
         <div>
           <label className="block mb-2 text-sm font-medium">
@@ -121,12 +117,10 @@ const handleChange = (
           </label>
           <input
             type="datetime-local"
-            name="fechaCreacion"
-            value={formData.fechaCreacion}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            required
+            {...register("fechaCreacion")}
+            className={`w-full p-2 border rounded ${errors.fechaCreacion ? 'border-red-500' : 'border-gray-300'}`}
           />
+          {errors.fechaCreacion && <p className="text-red-500 text-xs mt-1">{errors.fechaCreacion.message}</p>}
         </div>
       </div>
 
@@ -137,39 +131,32 @@ const handleChange = (
           </label>
           <input
             type="number"
-            name="capacidadMax"
-            value={formData.capacidadMax}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            required
-            min={1}
+            {...register("capacidadMax")}
+            className={`w-full p-2 border rounded ${errors.capacidadMax ? 'border-red-500' : 'border-gray-300'}`}
           />
+          {errors.capacidadMax && <p className="text-red-500 text-xs mt-1">{errors.capacidadMax.message}</p>}
         </div>
 
         <div>
-          <label className="block mb-2 text-sm font-medium">Categoría</label>
+          <label className="block mb-2 text-sm font-medium">Categoría (ID)</label>
           <input
             type="number"
-            name="idCategoria"
-            value={formData.idCategoria}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            required
+            {...register("idCategoria")}
+            className={`w-full p-2 border rounded ${errors.idCategoria ? 'border-red-500' : 'border-gray-300'}`}
           />
+          {errors.idCategoria && <p className="text-red-500 text-xs mt-1">{errors.idCategoria.message}</p>}
         </div>
 
         <div>
           <label className="block mb-2 text-sm font-medium">
-            Organización
+            Organización (ID)
           </label>
           <input
             type="number"
-            name="idOrganizacion"
-            value={formData.idOrganizacion}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            required
+            {...register("idOrganizacion")}
+            className={`w-full p-2 border rounded ${errors.idOrganizacion ? 'border-red-500' : 'border-gray-300'}`}
           />
+          {errors.idOrganizacion && <p className="text-red-500 text-xs mt-1">{errors.idOrganizacion.message}</p>}
         </div>
       </div>
 
