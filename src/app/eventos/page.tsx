@@ -8,6 +8,7 @@ import {
   createEvento,
   updateEvento,
   deleteEvento,
+  cancelarEvento,
 } from "@/app/services/eventosService";
 import { EventoForm } from "@/app/components/eventoForm";
 import { EventoTable } from "@/app/components/eventoTable";
@@ -134,6 +135,20 @@ export default function EventosPage() {
     setEditingEvento(null);
   };
 
+  const handleCancelEvento = async (id: number) => {
+    if (!confirm("¿Estás seguro de cancelar este evento? Esto reembolsará todos los tickets pagados y el evento no será visible como activo.")) return;
+    setLoading(true);
+    try {
+      await cancelarEvento(id);
+      await loadEventos(); // Recargar todos para asegurar que el estado se actualiza en la tabla
+    } catch (error) {
+      console.error("Error cancelando evento:", error);
+      alert((error as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <RoleGuard allowedRoles={["ORGANIZACION"]}>
       <div className="p-4">
@@ -161,6 +176,7 @@ export default function EventosPage() {
               loading={loading}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onCancel={handleCancelEvento}
             />
           </div>
         </div>

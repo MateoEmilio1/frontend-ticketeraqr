@@ -80,3 +80,14 @@ export async function getVentasReport(filters: any): Promise<ReporteHora[]> {
   const json = await res.json();
   return json.data || [];
 }
+
+// Cancelar evento
+export async function cancelarEvento(id: number): Promise<void> {
+  const res = await fetch(`${baseUrl}/api/eventos/${id}/cancelar`, {
+    method: "PATCH",
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Error al cancelar evento");
+  }
+}
