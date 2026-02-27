@@ -16,7 +16,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
             pathname === "/" ||
             pathname === "/login" ||
             pathname === "/no-autorizado" ||
-            pathname.startsWith("/register");
+            pathname.startsWith("/register") ||
+            pathname.startsWith("/forgot-password") ||
+            pathname.startsWith("/reset-password");
 
         if (!user && !isPublicRoute) {
             router.push("/no-autorizado");
@@ -36,7 +38,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         pathname === "/" ||
         pathname === "/login" ||
         pathname === "/no-autorizado" ||
-        pathname.startsWith("/register");
+        pathname.startsWith("/register") ||
+        pathname.startsWith("/forgot-password") ||
+        pathname.startsWith("/reset-password");
 
     if (!user && !isPublicRoute) {
         return null;
