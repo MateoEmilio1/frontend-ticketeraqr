@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const userData = await checkSession();
             setUser(userData);
         } catch (error) {
-            console.error("Session check failed", error);
+            // Silence session error for public users
             setUser(null);
         } finally {
             setLoading(false);

@@ -3,10 +3,10 @@
 import { ApiResponse } from "./clientService";
 import { Usuario } from "@/types/usuario";
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export async function getMe(token: string): Promise<Usuario> {
-    const res = await fetch(`${baseUrl}/api/usuario/me`, {
+    const res = await fetch(`${baseUrl}/api/usuarios/me`, {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -17,7 +17,7 @@ export async function getMe(token: string): Promise<Usuario> {
 }
 
 export async function forgotPassword(mail: string): Promise<ApiResponse<null>> {
-    const res = await fetch(`${baseUrl}/api/usuario/forgot-password`, {
+    const res = await fetch(`${baseUrl}/api/usuarios/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mail }),
@@ -30,7 +30,7 @@ export async function forgotPassword(mail: string): Promise<ApiResponse<null>> {
 }
 
 export async function resetPassword(token: string, nuevaContraseña: string): Promise<ApiResponse<null>> {
-    const res = await fetch(`${baseUrl}/api/usuario/reset-password`, {
+    const res = await fetch(`${baseUrl}/api/usuarios/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, nuevaContraseña }),
