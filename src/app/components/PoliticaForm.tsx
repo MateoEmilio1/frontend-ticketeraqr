@@ -9,6 +9,7 @@ const politicaSchema = z.object({
         .number()
         .int("Debe ser un número entero")
         .min(1, "Debe ingresar al menos 1 día"),
+    fechaVigencia: z.string().min(1, "Debe ingresar una fecha de vigencia"),
 });
 
 interface PoliticaFormProps {
@@ -86,6 +87,27 @@ export const PoliticaForm: React.FC<PoliticaFormProps> = ({
                 {errors.diasReembolso && (
                     <p className="text-red-500 text-sm mt-1">
                         {errors.diasReembolso.message}
+                    </p>
+                )}
+            </div>
+
+            <div>
+                <label
+                    htmlFor="fechaVigencia"
+                    className="block mb-2 text-sm font-medium"
+                >
+                    Fecha de Entrada en Vigencia
+                </label>
+                <input
+                    type="datetime-local"
+                    id="fechaVigencia"
+                    {...register("fechaVigencia")}
+                    className={`w-full p-2 border rounded ${errors.fechaVigencia ? "border-red-500" : "border-gray-300"
+                        }`}
+                />
+                {errors.fechaVigencia && (
+                    <p className="text-red-500 text-sm mt-1">
+                        {errors.fechaVigencia.message}
                     </p>
                 )}
             </div>

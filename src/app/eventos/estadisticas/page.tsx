@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { getEstadisticasEventos } from "@/app/services/estadisticaService";
+import { getCategorias } from "@/app/services/categoriaService";
+import { Categoria } from "@/types/categoria";
 import { EstadisticasResponse, EstadisticaEvento } from "@/types/evento";
 import EventoEstadisticasTable from "@/app/components/eventoEstadisticasTable";
 
 export default function EstadisticasPage() {
   const [allData, setAllData] = useState<EstadisticasResponse | null>(null);
   const [filteredEventos, setFilteredEventos] = useState<EstadisticaEvento[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
 
   const [search, setSearch] = useState("");
   const [fechaInicio, setFechaInicio] = useState("");
@@ -16,9 +19,13 @@ export default function EstadisticasPage() {
 
   const fetchData = async () => {
     try {
-      const res = await getEstadisticasEventos();
-      setAllData(res);
-      setFilteredEventos(res.eventos);
+      const [statsRes, catsRes] = await Promise.all([
+        getEstadisticasEventos(),
+        getCategorias()
+      ]);
+      setAllData(statsRes);
+      setFilteredEventos(statsRes.eventos);
+      setCategorias(catsRes);
     } catch (err) {
       console.error(err);
     }
@@ -124,9 +131,11 @@ export default function EstadisticasPage() {
             }
           >
             <option value="">Todas las categorías</option>
-            <option value="1">🎶 Conciertos</option>
-            <option value="2">⚽ Deportes</option>
-            <option value="3">🎭 Teatro</option>
+            {categorias.map(cat => (
+              <option key={cat.idCategoria} value={cat.idCategoria}>
+                {cat.nombreCategoria}
+              </option>
+            ))}
           </select>
         </div>
 

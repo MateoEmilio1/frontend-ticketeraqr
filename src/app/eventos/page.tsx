@@ -20,6 +20,7 @@ export default function EventosPage() {
   const [loading, setLoading] = useState(true);
   const [editingEvento, setEditingEvento] = useState<EventoFormData | null>(null);
   const [tipoTickets, setTipoTickets] = useState<TipoTicketFormData[]>([]);
+  const [successEvent, setSuccessEvent] = useState<Evento | null>(null);
 
   useEffect(() => {
     loadEventos();
@@ -58,6 +59,9 @@ export default function EventosPage() {
         const nuevo = await createEvento(eventoData);
         // Explicitly update state with new event
         setEventos(prev => [...prev, nuevo]);
+        setSuccessEvent(nuevo);
+        // Desaparecer mensaje de éxito después de 10 segundos
+        setTimeout(() => setSuccessEvent(null), 10000);
       }
 
       // Reset form state
@@ -155,6 +159,34 @@ export default function EventosPage() {
         <h1 className="text-2xl font-bold flex items-center gap-2 mb-4">
           <CalendarDays className="h-6 w-6" /> Gestión de Eventos
         </h1>
+
+        {successEvent && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg shadow-sm animate-in fade-in duration-500">
+            <h3 className="text-green-800 font-bold flex items-center gap-2 mb-2">
+              ✓ ¡Evento creado con éxito!
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-green-700">
+              <div>
+                <p><strong>Nombre:</strong> {successEvent.nombre}</p>
+                <p><strong>Fecha:</strong> {new Date(successEvent.fechaHoraEvento).toLocaleString()}</p>
+                <p><strong>Categoría ID:</strong> {successEvent.idCategoria}</p>
+              </div>
+              <div className="flex justify-center md:justify-end">
+                {successEvent.foto ? (
+                  <img src={successEvent.foto} alt="Evento" className="h-20 w-32 object-cover rounded shadow" />
+                ) : (
+                  <div className="h-20 w-32 bg-gray-200 flex items-center justify-center rounded text-gray-400">Sin foto</div>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => setSuccessEvent(null)}
+              className="mt-3 text-xs text-green-600 hover:text-green-800 font-medium"
+            >
+              Cerrar aviso
+            </button>
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           <div className="col-span-12 md:col-span-4">
             <EventoForm
