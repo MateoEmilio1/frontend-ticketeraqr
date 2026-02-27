@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Navbar from "@/app/components/navbar";
 import Footer from "@/app/components/footer";
 import VentasChart from "@/app/components/VentasChart";
 import PieChart from "@/app/components/PieChart";
@@ -88,8 +87,7 @@ export default function VentasReportePage() {
     const tiposTicket = selectedEvento?.tipoTickets || [];
 
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50">
-            <Navbar />
+        <div className="min-h-screen flex flex-col bg-gray-50 uppercase">
             <main className="container mx-auto px-4 py-8 flex-1">
                 <h1 className="text-3xl font-bold text-gray-900 mb-8">Reporte de Ventas por Hora</h1>
 

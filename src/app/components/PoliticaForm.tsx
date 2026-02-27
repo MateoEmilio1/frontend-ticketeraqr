@@ -27,10 +27,31 @@ export const PoliticaForm: React.FC<PoliticaFormProps> = ({
         register,
         handleSubmit,
         reset,
-        formState: { errors },
+        setValue,
+        formState: { errors, dirtyFields },
     } = useForm<PoliticaFormData>({
         resolver: zodResolver(politicaSchema) as any,
+        defaultValues: {
+            fechaVigencia: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
+                .toISOString()
+                .slice(0, 16),
+        },
     });
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (!dirtyFields.fechaVigencia) {
+                setValue(
+                    "fechaVigencia",
+                    new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
+                        .toISOString()
+                        .slice(0, 16)
+                );
+            }
+        }, 10000); // Actualiza la hora cada 10 segundos mientras no se edite el campo manualmente
+
+        return () => clearInterval(interval);
+    }, [dirtyFields.fechaVigencia, setValue]);
 
     const onFormSubmit = (data: PoliticaFormData) => {
         onSubmit(data);

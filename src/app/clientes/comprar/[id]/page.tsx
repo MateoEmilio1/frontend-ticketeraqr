@@ -9,7 +9,6 @@ import { Evento, TipoTicket } from "@/types/evento";
 import { getEventoById } from "@/app/services/eventosService";
 import { getClienteByUsuarioId } from "@/app/services/clientService";
 import { crearTicket } from "@/app/services/ticketService";
-import Navbar from "@/app/components/navbar";
 import Footer from "@/app/components/footer";
 import { Calendar, MapPin, Ticket as TicketIcon, CheckCircle, ArrowLeft, Loader2, CreditCard } from "lucide-react";
 import Link from "next/link";
@@ -172,8 +171,7 @@ export default function PurchasePage() {
 
     if (purchasedTicket) {
         return (
-            <div className="min-h-screen flex flex-col bg-gray-50">
-                <Navbar />
+            <div className="min-h-screen flex flex-col bg-gray-50 uppercase">
                 <main className="flex-1 flex items-center justify-center p-6">
                     <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 border border-green-100 text-center">
                         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">

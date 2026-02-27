@@ -5,12 +5,40 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getClienteByUsuarioId } from "@/app/services/clientService";
+import { getOrganizacionByUsuarioId } from "@/app/services/organizacionService";
 
 
 export default function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const rol = user?.rol;
+  const [userName, setUserName] = useState<string>("");
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      if (!user) {
+        setUserName("");
+        return;
+      }
+      try {
+        const userId = (user as any).id || user.idUsuario;
+        if (user.rol === "CLIENTE") {
+          const clientData = await getClienteByUsuarioId(Number(userId));
+          setUserName(`${clientData.nombre} ${clientData.apellido}`);
+        } else if (user.rol === "ORGANIZACION") {
+          const orgData = await getOrganizacionByUsuarioId(Number(userId));
+          setUserName(orgData.nombre);
+        } else if (user.rol === "ADMIN") {
+          setUserName("Administrador");
+        }
+      } catch (error) {
+        console.error("Error fetching user name for navbar:", error);
+      }
+    };
+    fetchUserName();
+  }, [user]);
 
   if (pathname === "/login") return null;
   if (!user) return null;
@@ -62,14 +90,14 @@ export default function Navbar() {
             {rol === "ADMIN" && (
               <>
                 <Link
-                  href="/admin/categorias"
-                  className={linkClass("/admin/categorias")}
+                  href="/categorias"
+                  className={linkClass("/categorias")}
                 >
                   Mis categorías
                 </Link>
                 <Link
-                  href="/admin/politicas"
-                  className={linkClass("/admin/politicas")}
+                  href="/politicas"
+                  className={linkClass("/politicas")}
                 >
                   Establecer políticas
                 </Link>
@@ -105,7 +133,9 @@ export default function Navbar() {
             >
               Cerrar sesión
             </button>
-            <div className="w-24 h-6 border rounded" />
+            <div className="px-3 py-1 bg-gray-100 border border-gray-200 rounded text-sm font-semibold text-gray-700 max-w-[150px] truncate">
+              {userName || "Cargando..."}
+            </div>
           </div>
         </div>
       </div>
