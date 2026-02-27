@@ -358,18 +358,19 @@ export default function PurchasePage() {
                                         />
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-gray-700 uppercase">Vencimiento</label>
-                                            <input
-                                                type="text"
-                                                name="vencimiento"
-                                                placeholder="MM/AA"
-                                                value={cardData.vencimiento}
-                                                onChange={handleCardChange}
-                                                maxLength={5}
-                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-center bg-white text-gray-900"
-                                            />
+                                        <div className="flex justify-between items-center mb-2">
+                                            <label className="text-xs font-bold text-gray-700 uppercase">Fecha Vto</label>
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-6" />
                                         </div>
+                                        <input
+                                            type="text"
+                                            name="vencimiento"
+                                            placeholder="MM/AA"
+                                            value={cardData.vencimiento}
+                                            onChange={handleCardChange}
+                                            maxLength={5}
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-center bg-white text-gray-900"
+                                        />
                                         <div className="space-y-2">
                                             <label className="text-xs font-bold text-gray-700 uppercase">CVV</label>
                                             <input

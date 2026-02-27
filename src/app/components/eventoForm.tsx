@@ -1,5 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { EventoFormData } from "@/types/evento";
+import { Categoria } from "@/types/categoria";
+import { getCategorias } from "@/app/services/categoriaService";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -32,6 +34,8 @@ export const EventoForm: React.FC<EventoFormProps> = ({
   onCancel,
   loading,
 }) => {
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+
   const {
     register,
     handleSubmit,
@@ -51,6 +55,18 @@ export const EventoForm: React.FC<EventoFormProps> = ({
       idOrganizacion: 1,
     },
   });
+
+  useEffect(() => {
+    const loadCategorias = async () => {
+      try {
+        const data = await getCategorias();
+        setCategorias(data);
+      } catch (error) {
+        console.error("Error cargando categorías:", error);
+      }
+    };
+    loadCategorias();
+  }, []);
 
   useEffect(() => {
     if (initialData) {
@@ -138,12 +154,18 @@ export const EventoForm: React.FC<EventoFormProps> = ({
         </div>
 
         <div>
-          <label className="block mb-2 text-sm font-medium">Categoría (ID)</label>
-          <input
-            type="number"
+          <label className="block mb-2 text-sm font-medium">Categoría</label>
+          <select
             {...register("idCategoria")}
-            className={`w-full p-2 border rounded ${errors.idCategoria ? 'border-red-500' : 'border-gray-300'}`}
-          />
+            className={`w-full p-2.5 border rounded-lg bg-gray-50 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block ${errors.idCategoria ? 'border-red-500' : 'border-gray-300'}`}
+          >
+            <option value="">Seleccione...</option>
+            {categorias.map(cat => (
+              <option key={cat.idCategoria} value={cat.idCategoria}>
+                {cat.nombreCategoria}
+              </option>
+            ))}
+          </select>
           {errors.idCategoria && <p className="text-red-500 text-xs mt-1">{errors.idCategoria.message}</p>}
         </div>
 

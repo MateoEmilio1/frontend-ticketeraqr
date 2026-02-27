@@ -60,11 +60,7 @@ export default function EventoEstadisticasTable({ eventos, totalEventos }: Props
                       ${e.recaudacion}
                     </td>
                     <td className="px-4 py-3 text-center text-gray-600">
-                      {e.idCategoria === 1
-                        ? "🎶 Conciertos"
-                        : e.idCategoria === 2
-                        ? "⚽ Deportes"
-                        : "🎭 Teatro"}
+                      ID: {e.idCategoria}
                     </td>
                   </tr>
                 ))
