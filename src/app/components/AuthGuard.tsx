@@ -12,16 +12,10 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (loading) return;
 
-        const isPublicRoute =
-            pathname === "/" ||
-            pathname === "/login" ||
-            pathname === "/no-autorizado" ||
-            pathname.startsWith("/register") ||
-            pathname.startsWith("/forgot-password") ||
-            pathname.startsWith("/reset-password");
+        const publicRoutes = ["/", "/login", "/registro"];
 
-        if (!user && !isPublicRoute) {
-            router.push("/no-autorizado");
+        if (!user && !publicRoutes.includes(pathname)) {
+            router.push("/");
         }
     }, [user, loading, router, pathname]);
 
@@ -34,15 +28,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     }
 
     // If not user and not public, we are redirecting, so return null
-    const isPublicRoute =
-        pathname === "/" ||
-        pathname === "/login" ||
-        pathname === "/no-autorizado" ||
-        pathname.startsWith("/register") ||
-        pathname.startsWith("/forgot-password") ||
-        pathname.startsWith("/reset-password");
-
-    if (!user && !isPublicRoute) {
+    if (!user && !["/", "/login", "/registro"].includes(pathname)) {
         return null;
     }
 

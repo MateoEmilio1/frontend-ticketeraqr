@@ -14,6 +14,7 @@ import { EventoForm } from "@/app/components/eventoForm";
 import { EventoTable } from "@/app/components/eventoTable";
 import { TipoTicketForm } from "../components/tipoTicketForm";
 import RoleGuard from "../components/RoleGuard";
+import { useAuth } from "@/context/AuthContext";
 
 export default function EventosPage() {
   const [eventos, setEventos] = useState<Evento[]>([]);
@@ -21,15 +22,22 @@ export default function EventosPage() {
   const [editingEvento, setEditingEvento] = useState<EventoFormData | null>(null);
   const [tipoTickets, setTipoTickets] = useState<TipoTicketFormData[]>([]);
   const [successEvent, setSuccessEvent] = useState<Evento | null>(null);
+  const [showTicketModal, setShowTicketModal] = useState(false);
+
+  const { user } = useAuth(); // Assume we need to import useAuth and destructure user
 
   useEffect(() => {
     loadEventos();
-  }, []);
+  }, [user]);
 
   const loadEventos = async () => {
     try {
       const data = await getEventos();
-      setEventos(data);
+      if (user?.idUsuario) {
+        setEventos(data.filter(e => e.idOrganizacion === user.idUsuario));
+      } else {
+        setEventos(data);
+      }
     } catch (error) {
       console.error("Error cargando eventos:", error);
     } finally {
@@ -46,7 +54,8 @@ export default function EventosPage() {
         ...data,
         capacidadMax: typeof data.capacidadMax === 'number' ? data.capacidadMax : parseInt(String(data.capacidadMax), 10) || 0,
         idCategoria: typeof data.idCategoria === 'number' ? data.idCategoria : parseInt(String(data.idCategoria), 10) || 1,
-        idOrganizacion: typeof data.idOrganizacion === 'number' ? data.idOrganizacion : parseInt(String(data.idOrganizacion), 10) || 1,
+        idOrganizacion: user?.idUsuario || 1, // Dynamically set from logged in user
+        fechaCreacion: data.fechaCreacion || new Date().toISOString(), // Inject current date if absent
         tipoTickets: tipoTickets
       };
 
@@ -92,6 +101,7 @@ export default function EventosPage() {
     };
 
     setTipoTickets(prev => [...prev, typedTicket]);
+    setShowTicketModal(false); // Close modal on submit
   };
 
   const handleEdit = (evento: Evento) => {
@@ -195,12 +205,38 @@ export default function EventosPage() {
               onSubmit={handleFormSubmit}
               onCancel={handleCancelEdit}
               loading={loading}
+              tipoTickets={editingEvento ? editingEvento.tipoTickets : tipoTickets}
             />
-            <TipoTicketForm
-              isEditing={false}
-              onSubmit={handleTipoTicketSubmit}
-              loading={loading}
-            />
+
+            <button
+              onClick={() => setShowTicketModal(true)}
+              className="mt-4 w-full px-4 py-2 border-2 border-dashed border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 hover:border-blue-400 transition-colors font-medium flex items-center justify-center gap-2"
+            >
+              + Agregar Tipo de Ticket
+            </button>
+
+            {showTicketModal && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+                  <div className="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-xl">
+                    <h3 className="font-bold text-gray-800">Cargar Nuevo Ticket</h3>
+                    <button
+                      onClick={() => setShowTicketModal(false)}
+                      className="text-gray-500 hover:text-gray-700 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="p-4">
+                    <TipoTicketForm
+                      isEditing={false}
+                      onSubmit={handleTipoTicketSubmit}
+                      loading={loading}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           <div className="col-span-12 md:col-span-8">
             <EventoTable
