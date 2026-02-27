@@ -50,9 +50,6 @@ export default function Navbar() {
                 <Link href="/organizaciones/scan" className={linkClass("/organizaciones/scan")}>
                   Escanear
                 </Link>
-                <Link href="/categorias" className={linkClass("/categorias")}>
-                  Categorías
-                </Link>
                 <Link href="/contacto" className={linkClass("/contacto")}>
                   Contacto
                 </Link>
@@ -62,14 +59,14 @@ export default function Navbar() {
             {rol === "ADMIN" && (
               <>
                 <Link
-                  href="/admin/categorias"
-                  className={linkClass("/admin/categorias")}
+                  href="/categorias"
+                  className={linkClass("/categorias")}
                 >
                   Mis categorías
                 </Link>
                 <Link
-                  href="/admin/politicas"
-                  className={linkClass("/admin/politicas")}
+                  href="/politicas"
+                  className={linkClass("/politicas")}
                 >
                   Establecer políticas
                 </Link>
@@ -78,9 +75,6 @@ export default function Navbar() {
 
             {rol === "CLIENTE" && (
               <>
-                <Link href="/categorias" className={linkClass("/categorias")}>
-                  Categorías
-                </Link>
                 <Link href="/clientes/mis-tickets" className={linkClass("/clientes/mis-tickets")}>
                   Mis tickets
                 </Link>

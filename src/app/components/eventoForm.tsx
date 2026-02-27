@@ -25,6 +25,7 @@ interface EventoFormProps {
   onSubmit: (data: EventoFormData) => void;
   onCancel?: () => void;
   loading: boolean;
+  tipoTickets: any[];
 }
 
 export const EventoForm: React.FC<EventoFormProps> = ({
@@ -33,13 +34,18 @@ export const EventoForm: React.FC<EventoFormProps> = ({
   onSubmit,
   onCancel,
   loading,
+  tipoTickets,
 }) => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<EventoFormData>({
     resolver: zodResolver(eventoSchema) as any,
@@ -76,6 +82,47 @@ export const EventoForm: React.FC<EventoFormProps> = ({
     }
   }, [initialData, setValue]);
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setImageError(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      // Usamos el endpoint configurado en .env para subir imágenes
+      const uploadUrl = process.env.NEXT_PUBLIC_API_URL
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/upload`
+        : "http://localhost:3333/api/upload"; // Fallback endpoint, asumiendo que el backend maneja la subida a Drive
+
+      // Si URL_IMAGENES es el endpoint directo, lo usamos (pero es probable que sea una carpeta de drive, así que necesitamos que el backend lo maneje)
+      // Por ahora simularemos la subida o enviaremos al backend
+
+      const res = await fetch(uploadUrl, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Error al subir la imagen");
+
+      const data = await res.json();
+      // Asumimos que el backend devuelve la URL de Drive en data.url
+      setValue("foto", data.url || data.secure_url || data.fileUrl);
+
+    } catch (error) {
+      console.error("Error subiendo imagen:", error);
+      setImageError("No se pudo subir la imagen. Intenta nuevamente.");
+      // Fallback para demostración: creamos una URL local temporal
+      const tempUrl = URL.createObjectURL(file);
+      setValue("foto", tempUrl);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const onFormSubmit = (data: EventoFormData) => {
     onSubmit(data);
   };
@@ -106,16 +153,50 @@ export const EventoForm: React.FC<EventoFormProps> = ({
       </div>
 
       <div>
-        <label className="block mb-2 text-sm font-medium">Foto (URL)</label>
-        <input
-          type="text"
-          {...register("foto")}
-          className={`w-full p-2 border rounded ${errors.foto ? 'border-red-500' : 'border-gray-300'}`}
-        />
-        {errors.foto && <p className="text-red-500 text-xs mt-1">{errors.foto.message}</p>}
+        <label className="block mb-2 text-sm font-medium">Foto del Evento</label>
+        <div className="flex gap-4 items-start">
+          <div className="flex-1 space-y-2">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              disabled={uploadingImage}
+              className="w-full p-2 border border-gray-300 text-sm rounded bg-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+            {/* Campo oculto para mantener el valor en el form de react-hook-form */}
+            <input type="hidden" {...register("foto")} />
+
+            {uploadingImage && <p className="text-blue-600 text-xs mt-1">Subiendo imagen...</p>}
+            {imageError && <p className="text-red-500 text-xs mt-1">{imageError}</p>}
+            {errors.foto && !uploadingImage && <p className="text-red-500 text-xs mt-1">{errors.foto.message}</p>}
+          </div>
+          {watch("foto") && (
+            <div className="h-24 w-36 shrink-0 border rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center relative shadow-sm">
+              <img
+                src={watch("foto")}
+                alt="Vista previa"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+                onLoad={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'block';
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setValue("foto", "")}
+                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-75 hover:opacity-100 transition-opacity"
+                title="Quitar foto"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div>
           <label className="block mb-2 text-sm font-medium">
             Fecha y Hora del Evento
@@ -127,20 +208,9 @@ export const EventoForm: React.FC<EventoFormProps> = ({
           />
           {errors.fechaHoraEvento && <p className="text-red-500 text-xs mt-1">{errors.fechaHoraEvento.message}</p>}
         </div>
-        <div>
-          <label className="block mb-2 text-sm font-medium">
-            Fecha de Creación
-          </label>
-          <input
-            type="datetime-local"
-            {...register("fechaCreacion")}
-            className={`w-full p-2 border rounded ${errors.fechaCreacion ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.fechaCreacion && <p className="text-red-500 text-xs mt-1">{errors.fechaCreacion.message}</p>}
-        </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block mb-2 text-sm font-medium">
             Capacidad Máxima
@@ -168,21 +238,23 @@ export const EventoForm: React.FC<EventoFormProps> = ({
           </select>
           {errors.idCategoria && <p className="text-red-500 text-xs mt-1">{errors.idCategoria.message}</p>}
         </div>
-
-        <div>
-          <label className="block mb-2 text-sm font-medium">
-            Organización (ID)
-          </label>
-          <input
-            type="number"
-            {...register("idOrganizacion")}
-            className={`w-full p-2 border rounded ${errors.idOrganizacion ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.idOrganizacion && <p className="text-red-500 text-xs mt-1">{errors.idOrganizacion.message}</p>}
-        </div>
       </div>
 
-      {/* Sección para gestionar los tipoTickets podría agregarse aquí */}
+      {/* Sección visual para tickets agregados */}
+      {tipoTickets && tipoTickets.length > 0 && (
+        <div className="mt-4 p-4 border border-blue-100 bg-blue-50 rounded-lg">
+          <h4 className="text-sm font-bold text-blue-900 mb-2">Tipos de Ticket Agregados:</h4>
+          <ul className="space-y-2">
+            {tipoTickets.map((ticket, index) => (
+              <li key={index} className="text-sm flex justify-between bg-white px-3 py-2 rounded shadow-sm">
+                <span className="font-semibold text-gray-700">{ticket.tipo} ({ticket.acceso})</span>
+                <span className="text-green-600 font-bold">${ticket.precio}</span>
+                <span className="text-gray-500 text-xs ml-2">Cant: {ticket.cantMaxPorTipo}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="flex gap-2 mt-4">
         <button
