@@ -1,4 +1,4 @@
-const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333";
+const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export const loginUsuario = async (email: string, password: string) => {
   const res = await fetch(`${baseUrl}/api/usuarios/login`, {

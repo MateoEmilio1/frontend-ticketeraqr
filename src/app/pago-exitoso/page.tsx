@@ -1,12 +1,10 @@
 import Link from "next/link";
 import { CheckCircle, Ticket as TicketIcon } from "lucide-react";
-import Navbar from "@/app/components/navbar";
 import Footer from "@/app/components/footer";
 
 export default function PagoExitosoPage() {
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50">
-            <Navbar />
+        <div className="min-h-screen flex flex-col bg-gray-50 uppercase">
             <main className="flex-1 flex items-center justify-center p-6 bg-gradient-to-br from-green-50 to-emerald-50">
                 <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 text-center border-t-8 border-green-500 animate-in zoom-in-95 duration-300">
                     <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
