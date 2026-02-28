@@ -38,16 +38,16 @@ export async function createEvento(data: EventoFormData): Promise<Evento> {
   return json.data;
 }
 
-// Actualizar evento
-export async function updateEvento(id: number, data: EventoFormData): Promise<Evento> {
+// Actualizar fecha evento
+export async function cambiarFechaEvento(id: number, fechaHoraEvento: string): Promise<Evento> {
   const res = await fetch(`${baseUrl}/api/eventos/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    body: JSON.stringify({ fechaHoraEvento }),
   });
   if (!res.ok) {
     const error = await res.json();
-    throw new Error(error.message || "Error al actualizar evento");
+    throw new Error(error.message || "Error al actualizar la fecha del evento");
   }
   const json = (await res.json()) as ApiResponse<Evento>;
   return json.data;
