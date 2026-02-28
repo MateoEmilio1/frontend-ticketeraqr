@@ -6,10 +6,12 @@ import { Evento, EventoFormData, TipoTicketFormData } from "@/types/evento";
 import {
   getEventos,
   createEvento,
-  updateEvento,
+  cambiarFechaEvento,
   deleteEvento,
   cancelarEvento,
 } from "@/app/services/eventosService";
+import { getCategorias } from "@/app/services/categoriaService";
+import { Categoria } from "@/types/categoria";
 import { EventoForm } from "@/app/components/eventoForm";
 import { EventoTable } from "@/app/components/eventoTable";
 import { TipoTicketForm } from "../components/tipoTicketForm";
@@ -19,7 +21,7 @@ import { useAuth } from "@/context/AuthContext";
 export default function EventosPage() {
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingEvento, setEditingEvento] = useState<EventoFormData | null>(null);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [tipoTickets, setTipoTickets] = useState<TipoTicketFormData[]>([]);
   const [successEvent, setSuccessEvent] = useState<Evento | null>(null);
   const [showTicketModal, setShowTicketModal] = useState(false);
@@ -28,7 +30,17 @@ export default function EventosPage() {
 
   useEffect(() => {
     loadEventos();
+    loadCategorias();
   }, [user]);
+
+  const loadCategorias = async () => {
+    try {
+      const data = await getCategorias();
+      setCategorias(data);
+    } catch (error) {
+      console.error("Error cargando categorías:", error);
+    }
+  };
 
   const loadEventos = async () => {
     try {
@@ -59,22 +71,14 @@ export default function EventosPage() {
         tipoTickets: tipoTickets
       };
 
-      if (editingEvento?.idEvento) {
-        const updated = await updateEvento(editingEvento.idEvento, eventoData);
-        setEventos((prev) =>
-          prev.map((ev) => (ev.idEvento === updated.idEvento ? updated : ev))
-        );
-      } else {
-        const nuevo = await createEvento(eventoData);
-        // Explicitly update state with new event
-        setEventos(prev => [...prev, nuevo]);
-        setSuccessEvent(nuevo);
-        // Desaparecer mensaje de éxito después de 10 segundos
-        setTimeout(() => setSuccessEvent(null), 10000);
-      }
+      const nuevo = await createEvento(eventoData);
+      // Explicitly update state with new event
+      setEventos((prev) => [...prev, nuevo]);
+      setSuccessEvent(nuevo);
+      // Desaparecer mensaje de éxito después de 10 segundos
+      setTimeout(() => setSuccessEvent(null), 10000);
 
       // Reset form state
-      setEditingEvento(null);
       setTipoTickets([]);
 
       // Reload events list to ensure consistency
@@ -104,31 +108,17 @@ export default function EventosPage() {
     setShowTicketModal(false); // Close modal on submit
   };
 
-  const handleEdit = (evento: Evento) => {
-    // Convertir las fechas a formato ISO para los inputs de tipo datetime-local
-    const fechaCreacionStr = new Date(evento.fechaCreacion)
-      .toISOString()
-      .slice(0, 16);
-    const fechaHoraEventoStr = new Date(evento.fechaHoraEvento)
-      .toISOString()
-      .slice(0, 16);
-    setEditingEvento({
-      idEvento: evento.idEvento,
-      nombre: evento.nombre,
-      fechaCreacion: fechaCreacionStr,
-      fechaHoraEvento: fechaHoraEventoStr,
-      capacidadMax: evento.capacidadMax,
-      descripcion: evento.descripcion || "",
-      foto: evento.foto,
-      idCategoria: evento.idCategoria,
-      idOrganizacion: evento.idOrganizacion,
-      tipoTickets: evento.tipoTickets.map((tt) => ({
-        tipo: tt.tipo,
-        precio: tt.precio,
-        acceso: tt.acceso,
-        cantMaxPorTipo: tt.cantMaxPorTipo,
-      })),
-    });
+  const handleCambiarFecha = async (id: number, nuevaFecha: string) => {
+    setLoading(true);
+    try {
+      await cambiarFechaEvento(id, nuevaFecha);
+      await loadEventos();
+    } catch (error) {
+      console.error("Error cambiando fecha:", error);
+      alert((error as Error).message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -145,9 +135,7 @@ export default function EventosPage() {
     }
   };
 
-  const handleCancelEdit = () => {
-    setEditingEvento(null);
-  };
+
 
   const handleCancelEvento = async (id: number) => {
     if (!confirm("¿Estás seguro de cancelar este evento? Esto reembolsará todos los tickets pagados y el evento no será visible como activo.")) return;
@@ -200,12 +188,10 @@ export default function EventosPage() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           <div className="col-span-12 md:col-span-4">
             <EventoForm
-              initialData={editingEvento || undefined}
-              isEditing={!!editingEvento}
+              isEditing={false}
               onSubmit={handleFormSubmit}
-              onCancel={handleCancelEdit}
               loading={loading}
-              tipoTickets={editingEvento ? editingEvento.tipoTickets : tipoTickets}
+              tipoTickets={tipoTickets}
             />
 
             <button
@@ -241,8 +227,9 @@ export default function EventosPage() {
           <div className="col-span-12 md:col-span-8">
             <EventoTable
               eventos={eventos}
+              categorias={categorias}
               loading={loading}
-              onEdit={handleEdit}
+              onChangeDate={handleCambiarFecha}
               onDelete={handleDelete}
               onCancel={handleCancelEvento}
             />
