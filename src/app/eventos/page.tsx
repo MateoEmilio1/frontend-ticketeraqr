@@ -11,6 +11,7 @@ import {
   cancelarEvento,
 } from "@/app/services/eventosService";
 import { getCategorias } from "@/app/services/categoriaService";
+import { getOrganizacionByUsuarioId } from "@/app/services/organizacionService";
 import { Categoria } from "@/types/categoria";
 import { EventoForm } from "@/app/components/eventoForm";
 import { EventoTable } from "@/app/components/eventoTable";
@@ -44,11 +45,15 @@ export default function EventosPage() {
 
   const loadEventos = async () => {
     try {
-      const data = await getEventos();
-      if (user?.idUsuario) {
-        setEventos(data.filter(e => e.idOrganizacion === user.idUsuario));
-      } else {
+      if (user?.rol === "ADMIN") {
+        const data = await getEventos();
         setEventos(data);
+      } else if (user?.rol === "ORGANIZACION" && user?.idUsuario) {
+        const orgData = await getOrganizacionByUsuarioId(Number(user.idUsuario));
+        const data = await getEventos(orgData.idOrganizacion);
+        setEventos(data);
+      } else {
+        setEventos([]);
       }
     } catch (error) {
       console.error("Error cargando eventos:", error);
@@ -152,7 +157,7 @@ export default function EventosPage() {
   };
 
   return (
-    <RoleGuard allowedRoles={["ORGANIZACION"]}>
+    <RoleGuard allowedRoles={["ORGANIZACION", "ADMIN"]}>
       <div className="p-4">
         <h1 className="text-2xl font-bold flex items-center gap-2 mb-4">
           <CalendarDays className="h-6 w-6" /> Gestión de Eventos

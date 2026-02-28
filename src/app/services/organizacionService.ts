@@ -38,6 +38,10 @@ export async function updateOrganizacion(id: number, data: OrganizacionFormData)
     });
     if (!res.ok) {
         const error = await res.json();
+        if (error.details && Array.isArray(error.details)) {
+            const messages = error.details.map((d: any) => d.message).join(", ");
+            throw new Error(messages);
+        }
         throw new Error(error.message || "Error al actualizar organizacion");
     }
     const json = (await res.json()) as ApiResponse<Organizacion>;

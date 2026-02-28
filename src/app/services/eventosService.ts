@@ -11,8 +11,11 @@ export interface ApiResponse<T> {
 const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 // Obtener todos los eventos
-export async function getEventos(): Promise<Evento[]> {
-  const res = await fetch(`${baseUrl}/api/eventos`);
+export async function getEventos(idOrganizacion?: number): Promise<Evento[]> {
+  const url = idOrganizacion
+    ? `${baseUrl}/api/eventos?idOrganizacion=${idOrganizacion}`
+    : `${baseUrl}/api/eventos`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error("Error al obtener eventos");
   const json = (await res.json()) as ApiResponse<Evento[]>;
   return json.data;
