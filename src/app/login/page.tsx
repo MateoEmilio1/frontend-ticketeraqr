@@ -63,15 +63,6 @@ export default function LoginPage() {
           >
             ¿Olvidaste tu contraseña?
           </Link>
-          <p className="block text-gray-600">
-            ¿No tenés una cuenta?{" "}
-            <Link
-              href="/register"
-              className="text-blue-600 hover:text-blue-800 font-bold"
-            >
-              Registrate acá
-            </Link>
-          </p>
           <Link
             href="/"
             className="block hover:text-blue-600 transition-colors duration-200"
