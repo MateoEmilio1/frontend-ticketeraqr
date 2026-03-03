@@ -9,11 +9,37 @@ const clienteSchema = z.object({
   contraseña: z.string().min(6, "La contraseña debe tener al menos 6 caracteres").optional().or(z.literal("")),
   nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   apellido: z.string().min(2, "El apellido debe tener al menos 2 caracteres"),
-  tipoDoc: z.string().min(2, "Tipo de documento inválido"),
-  nroDoc: z.string().min(7, "Número de documento inválido"),
+  tipoDoc: z.enum(["DNI", "Pasaporte", "Cédula"]),
+  nroDoc: z.string(),
   fechaNacimiento: z.string().min(1, "La fecha de nacimiento es requerida"),
   telefono: z.string().optional().or(z.literal("")),
   prefijo: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.tipoDoc === "DNI") {
+    if (!/^\d{7,9}$/.test(data.nroDoc)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "DNI debe tener entre 7 y 9 dígitos numéricos",
+        path: ["nroDoc"],
+      });
+    }
+  } else if (data.tipoDoc === "Pasaporte") {
+    if (!/^[a-zA-Z0-9]{5,20}$/.test(data.nroDoc)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Pasaporte debe ser alfanumérico entre 5 y 20 caracteres",
+        path: ["nroDoc"],
+      });
+    }
+  } else if (data.tipoDoc === "Cédula") {
+    if (!/^[a-zA-Z0-9]{5,15}$/.test(data.nroDoc)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Cédula debe ser alfanumérica entre 5 y 15 caracteres",
+        path: ["nroDoc"],
+      });
+    }
+  }
 });
 
 interface ClienteFormProps {

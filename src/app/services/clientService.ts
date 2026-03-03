@@ -6,7 +6,7 @@ export interface ApiResponse<T> {
   message: string;
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/['"]/g, "");
 
 export async function getClientes(): Promise<Cliente[]> {
   const res = await fetch(`${baseUrl}/api/clientes`);

@@ -24,7 +24,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const verifySession = async () => {
         try {
             const userData = await checkSession();
-            setUser(userData);
+            // Normalizar: asegurar que idUsuario e id existan para compatibilidad
+            const normalizedUser = {
+                ...userData,
+                idUsuario: userData.idUsuario || userData.id,
+                id: userData.id || userData.idUsuario
+            };
+            setUser(normalizedUser);
         } catch (error) {
             // Silence session error for public users
             setUser(null);

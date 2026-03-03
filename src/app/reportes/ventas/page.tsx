@@ -7,10 +7,13 @@ import PieChart from "@/app/components/PieChart";
 import { getVentasReport, ReporteHora } from "@/app/services/eventosService";
 import { getCategorias } from "@/app/services/categoriaService";
 import { getEventos } from "@/app/services/eventosService";
+import { getOrganizacionByUsuarioId } from "@/app/services/organizacionService";
+import { useAuth } from "@/context/AuthContext";
 import { Categoria } from "@/types/categoria";
 import { Evento } from "@/types/evento";
 
 export default function VentasReportePage() {
+    const { user } = useAuth();
     const [data, setData] = useState<ReporteHora[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -24,7 +27,8 @@ export default function VentasReportePage() {
         fechaFin: "",
         idCategoria: "",
         idEvento: "",
-        idTipoTicket: ""
+        idTipoTicket: "",
+        idOrganizacion: ""
     });
 
     // Cargar catalogos al inicio
@@ -47,8 +51,15 @@ export default function VentasReportePage() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            console.log("Fetching report with filters:", filters);
-            const result = await getVentasReport(filters);
+            let idOrg = filters.idOrganizacion;
+            if (!idOrg && user?.rol === "ORGANIZACION" && user.idUsuario) {
+                const orgData = await getOrganizacionByUsuarioId(Number(user.idUsuario));
+                idOrg = orgData.idOrganizacion.toString();
+                setFilters(prev => ({ ...prev, idOrganizacion: idOrg }));
+            }
+
+            console.log("Fetching report with filters:", { ...filters, idOrganizacion: idOrg });
+            const result = await getVentasReport({ ...filters, idOrganizacion: idOrg });
             console.log("Report data received:", result);
             setData(result);
         } catch (error) {
@@ -59,8 +70,8 @@ export default function VentasReportePage() {
     };
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (user) fetchData();
+    }, [user]);
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;

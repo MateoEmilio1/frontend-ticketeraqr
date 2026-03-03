@@ -8,6 +8,7 @@ import { Calendar, Tag, QrCode, Ticket as TicketIcon, AlertCircle, CreditCard, S
 import QrModal from "@/app/components/ui/QrModal";
 import { useAuth } from "@/context/AuthContext";
 import { transferTicket, refundTicket } from "@/app/services/ticketService";
+import { getClienteByUsuarioId } from "@/app/services/clientService";
 
 export default function MisTicketsPage() {
     const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -34,19 +35,21 @@ export default function MisTicketsPage() {
             }
 
             try {
-                // User id is usually number in DB but string in state sometimes?
-                // In types/usuario.ts it says idUsuario?: number;
-                // In AuthContext it comes from DB.
                 const idUsuario = user.idUsuario;
                 console.log('id Usuario: ', idUsuario);
 
                 if (idUsuario) {
-                    const data = await getTicketsByCliente(Number(idUsuario));
-                    setTickets(data);
+                    // Primero obtener el idCliente usando el idUsuario
+                    const cliente = await getClienteByUsuarioId(Number(idUsuario));
+                    if (cliente && cliente.idCliente) {
+                        const data = await getTicketsByCliente(Number(cliente.idCliente));
+                        setTickets(data);
+                    } else {
+                        setTickets([]);
+                    }
                 }
             } catch (err) {
                 console.error(err);
-                // Si falla porque no tiene cliente, es normal mostrar lista vacía o error específico
                 setError("No se pudieron cargar tus tickets.");
             } finally {
                 setDataLoading(false);
@@ -59,8 +62,11 @@ export default function MisTicketsPage() {
     const fetchTickets = async () => {
         if (!user || user.idUsuario === undefined) return;
         try {
-            const data = await getTicketsByCliente(Number(user.idUsuario));
-            setTickets(data);
+            const cliente = await getClienteByUsuarioId(Number(user.idUsuario));
+            if (cliente && cliente.idCliente) {
+                const data = await getTicketsByCliente(Number(cliente.idCliente));
+                setTickets(data);
+            }
         } catch (err) {
             console.error(err);
             setError("No se pudieron recargar tus tickets.");

@@ -8,7 +8,7 @@ export interface ApiResponse<T> {
   message: string;
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/['"]/g, "");
 
 export async function getCategorias(): Promise<Categoria[]> {
   const res = await fetch(`${baseUrl}/api/categorias`);
@@ -53,5 +53,14 @@ export async function deleteCategoria(id: number): Promise<null> {
   });
   if (!res.ok) throw new Error("Error al eliminar categoría");
   const json = (await res.json()) as ApiResponse<null>;
+  return json.data;
+}
+export async function getReporteCategoria(idOrganizacion?: number): Promise<any> {
+  const url = idOrganizacion
+    ? `${baseUrl}/api/eventos/reporte-categoria?idOrganizacion=${idOrganizacion}`
+    : `${baseUrl}/api/eventos/reporte-categoria`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Error al obtener reporte de categorías");
+  const json = (await res.json()) as ApiResponse<any>;
   return json.data;
 }

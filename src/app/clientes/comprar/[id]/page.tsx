@@ -13,11 +13,11 @@ import Footer from "@/app/components/footer";
 import { Calendar, MapPin, Ticket as TicketIcon, CheckCircle, ArrowLeft, Loader2, CreditCard } from "lucide-react";
 import Link from "next/link";
 import TicketQr from "../../../components/ticketsQR";
-
 import { useAuth } from "@/context/AuthContext";
+import AuthModal from "@/app/components/ui/AuthModal";
 
 export default function PurchasePage() {
-    const { user } = useAuth();
+    const { user, isAuthenticated } = useAuth();
     const { id } = useParams();
     const router = useRouter();
     const [evento, setEvento] = useState<Evento | null>(null);
@@ -27,6 +27,7 @@ export default function PurchasePage() {
     const [purchasing, setPurchasing] = useState(false);
     const [purchasedTicket, setPurchasedTicket] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     // Estado del formulario de tarjeta
     const [cardData, setCardData] = useState({
@@ -60,6 +61,11 @@ export default function PurchasePage() {
 
     const handlePurchase = async () => {
         if (!selectedTipo || !evento) return;
+
+        if (!isAuthenticated) {
+            setIsAuthModalOpen(true);
+            return;
+        }
 
         // Validación simple de tarjeta - SOLO si el método de pago es tarjeta
         if (metodoPago === "tarjeta") {
@@ -103,12 +109,12 @@ export default function PurchasePage() {
             setPurchasing(true);
             setError(null);
 
-            if (!user?.idUsuario) {
-                router.push("/login");
+            const idUsuario = user?.idUsuario || (user as any)?.id;
+            if (!idUsuario) {
+                setIsAuthModalOpen(true);
+                setPurchasing(false);
                 return;
             }
-
-            const idUsuario = user.idUsuario;
 
             // Get the client ID for this user
             let cliente;
@@ -207,6 +213,7 @@ export default function PurchasePage() {
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-50">
+            <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
             <main className="flex-1 max-w-7xl mx-auto px-6 py-12 w-full">
                 <div className="mb-8">
                     <button
