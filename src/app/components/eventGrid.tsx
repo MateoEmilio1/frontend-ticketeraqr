@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Calendar, MapPin, Tag, ArrowRight } from "lucide-react";
 import { Evento } from "@/types/evento";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
+import AuthModal from "./ui/AuthModal";
 
 interface EventGridProps {
     eventos: Evento[];
@@ -9,6 +11,9 @@ interface EventGridProps {
 }
 
 export const EventGrid: React.FC<EventGridProps> = ({ eventos, loading }) => {
+    const { isAuthenticated } = useAuth();
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
     if (loading) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -27,8 +32,19 @@ export const EventGrid: React.FC<EventGridProps> = ({ eventos, loading }) => {
         );
     }
 
+    const handleComprarClick = (e: React.MouseEvent) => {
+        if (!isAuthenticated) {
+            e.preventDefault();
+            setIsAuthModalOpen(true);
+        }
+    };
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <AuthModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+            />
             {eventos.map((evento) => (
                 <div
                     key={evento.idEvento}
@@ -83,8 +99,9 @@ export const EventGrid: React.FC<EventGridProps> = ({ eventos, loading }) => {
                                     </p>
                                 </div>
                                 <Link
-                                    href={`/comprar/${evento.idEvento}`}
-                                    className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg active:scale-95 duration-200"
+                                    href={`/clientes/comprar/${evento.idEvento}`}
+                                    onClick={handleComprarClick}
+                                    className="flex-1 bg-black text-white text-center py-2 rounded-xl font-bold hover:bg-gray-800 transition-all active:scale-95 flex items-center justify-center gap-2"
                                 >
                                     Comprar
                                     <ArrowRight className="w-4 h-4" />

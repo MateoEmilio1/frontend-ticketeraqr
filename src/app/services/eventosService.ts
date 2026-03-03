@@ -8,7 +8,7 @@ export interface ApiResponse<T> {
   message: string;
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/['"]/g, "");
 
 // Obtener todos los eventos
 export async function getEventos(idOrganizacion?: number): Promise<Evento[]> {
@@ -75,9 +75,11 @@ export async function getVentasReport(filters: any): Promise<ReporteHora[]> {
   if (filters.fechaInicio) params.append("fechaInicio", filters.fechaInicio);
   if (filters.fechaFin) params.append("fechaFin", filters.fechaFin);
   if (filters.idCategoria) params.append("idCategoria", filters.idCategoria);
+  if (filters.idEvento) params.append("idEvento", filters.idEvento);
   if (filters.idTipoTicket) params.append("idTipoTicket", filters.idTipoTicket);
+  if (filters.idOrganizacion) params.append("idOrganizacion", filters.idOrganizacion.toString());
 
-  const res = await fetch(`${baseUrl}/api/eventos/reportes/ventas-hora?${params.toString()}`);
+  const res = await fetch(`${baseUrl}/api/eventos/ventas-hora?${params.toString()}`);
   if (!res.ok) throw new Error("Error al obtener reporte");
 
   const json = await res.json();

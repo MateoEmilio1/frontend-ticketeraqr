@@ -26,6 +26,7 @@ export default function EventosPage() {
   const [tipoTickets, setTipoTickets] = useState<TipoTicketFormData[]>([]);
   const [successEvent, setSuccessEvent] = useState<Evento | null>(null);
   const [showTicketModal, setShowTicketModal] = useState(false);
+  const [organizacionId, setOrganizacionId] = useState<number | null>(null);
 
   const { user } = useAuth(); // Assume we need to import useAuth and destructure user
 
@@ -50,6 +51,7 @@ export default function EventosPage() {
         setEventos(data);
       } else if (user?.rol === "ORGANIZACION" && user?.idUsuario) {
         const orgData = await getOrganizacionByUsuarioId(Number(user.idUsuario));
+        setOrganizacionId(orgData.idOrganizacion);
         const data = await getEventos(orgData.idOrganizacion);
         setEventos(data);
       } else {
@@ -71,7 +73,7 @@ export default function EventosPage() {
         ...data,
         capacidadMax: typeof data.capacidadMax === 'number' ? data.capacidadMax : parseInt(String(data.capacidadMax), 10) || 0,
         idCategoria: typeof data.idCategoria === 'number' ? data.idCategoria : parseInt(String(data.idCategoria), 10) || 1,
-        idOrganizacion: user?.idUsuario || 1, // Dynamically set from logged in user
+        idOrganizacion: organizacionId || 1, // Using the correct org ID from state
         fechaCreacion: data.fechaCreacion || new Date().toISOString(), // Inject current date if absent
         tipoTickets: tipoTickets
       };

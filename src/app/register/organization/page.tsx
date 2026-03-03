@@ -10,10 +10,26 @@ import { z } from "zod";
 import { Book, Building2, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
+const validarCUIT = (cuit: string): boolean => {
+    cuit = cuit.replace(/[-_]/g, "");
+    if (cuit.length !== 11 || !/^\d+$/.test(cuit)) return false;
+    const multipliers = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+    let sum = 0;
+    for (let i = 0; i < 10; i++) {
+        sum += parseInt(cuit[i]) * multipliers[i];
+    }
+    let calculatedCheck = 11 - (sum % 11);
+    if (calculatedCheck === 11) calculatedCheck = 0;
+    if (calculatedCheck === 10) calculatedCheck = 9;
+    return parseInt(cuit[10]) === calculatedCheck;
+};
+
 const organizacionSchema = z.object({
     nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
     ubicacion: z.string().min(5, "La ubicación debe ser más descriptiva"),
-    cuit: z.string().regex(/^\d{11}$/, "El CUIT debe tener 11 dígitos numéricos"),
+    cuit: z.string()
+        .regex(/^\d{11}$/, "El CUIT debe tener 11 dígitos numéricos")
+        .refine(validarCUIT, "CUIT inválido (falló la validación de integridad)"),
     mail: z.string().email("Email inválido"),
     contraseña: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
 });

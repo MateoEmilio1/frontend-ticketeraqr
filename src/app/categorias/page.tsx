@@ -13,7 +13,24 @@ import {
 } from "@/app/services/categoriaService";
 import { Categoria, CategoriaFormData } from "@/types/categoria";
 
+// New imports for client view
+import { getEventos } from "@/app/services/eventosService";
+import { getOrganizacionByUsuarioId } from "@/app/services/organizacionService";
+import { Evento } from "@/types/evento";
+import EventGrid from "@/app/components/eventGrid";
+import { useAuth } from "@/context/AuthContext";
+
 export default function CategoriasPage() {
+  const { user } = useAuth();
+  const rol = user?.rol;
+
+  if (rol === "ADMIN") {
+    return <AdminCategoriasView />;
+  }
+  return <ClienteCategoriasView />;
+}
+
+function AdminCategoriasView() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingCategoria, setEditingCategoria] = useState<Categoria | null>(null);
@@ -115,3 +132,45 @@ export default function CategoriasPage() {
     </RoleGuard>
   );
 }
+
+function ClienteCategoriasView() {
+  const { user } = useAuth();
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [eventos, setEventos] = useState<Evento[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [cats, evts] = await Promise.all([getCategorias(), getEventos()]);
+        let filtered = evts;
+        if (user?.rol === "ORGANIZACION" && user?.idUsuario) {
+          const org = await getOrganizacionByUsuarioId(Number(user.idUsuario));
+          if (org) {
+            filtered = evts.filter(e => e.idOrganizacion === org.idOrganizacion);
+          }
+        }
+        setCategorias(cats);
+        setEventos(filtered);
+      } catch (e) {
+        console.error("Error cargando datos de categorías/eventos:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user) loadData();
+  }, [user]);
+
+  return (
+    <RoleGuard allowedRoles={["ORGANIZACION", "CLIENTE"]}>
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        <h1 className="text-3xl font-extrabold text-gray-900 mb-2 flex items-center gap-2">
+          Eventos por Categoría
+        </h1>
+        <EventGrid eventos={eventos} loading={loading} />
+      </div>
+    </RoleGuard>
+  );
+}
+
+

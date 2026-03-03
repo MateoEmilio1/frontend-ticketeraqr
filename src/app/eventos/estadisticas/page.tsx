@@ -3,11 +3,14 @@
 import { useState, useEffect } from "react";
 import { getEstadisticasEventos } from "@/app/services/estadisticaService";
 import { getCategorias } from "@/app/services/categoriaService";
+import { getOrganizacionByUsuarioId } from "@/app/services/organizacionService";
+import { useAuth } from "@/context/AuthContext";
 import { Categoria } from "@/types/categoria";
 import { EstadisticasResponse, EstadisticaEvento } from "@/types/evento";
 import EventoEstadisticasTable from "@/app/components/eventoEstadisticasTable";
 
 export default function EstadisticasPage() {
+  const { user } = useAuth();
   const [allData, setAllData] = useState<EstadisticasResponse | null>(null);
   const [filteredEventos, setFilteredEventos] = useState<EstadisticaEvento[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -19,8 +22,14 @@ export default function EstadisticasPage() {
 
   const fetchData = async () => {
     try {
+      let idOrg;
+      if (user?.rol === "ORGANIZACION" && user.idUsuario) {
+        const orgData = await getOrganizacionByUsuarioId(Number(user.idUsuario));
+        idOrg = orgData.idOrganizacion;
+      }
+
       const [statsRes, catsRes] = await Promise.all([
-        getEstadisticasEventos(),
+        getEstadisticasEventos(idOrg),
         getCategorias()
       ]);
       setAllData(statsRes);

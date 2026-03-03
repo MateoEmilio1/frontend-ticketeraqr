@@ -41,7 +41,7 @@ export default function Navbar() {
   }, [user]);
 
   if (pathname === "/login") return null;
-  if (!user) return null;
+  // if (!user) return null; // MOVED: show navbar for guests
 
   const isActive = (href: string) => pathname.startsWith(href);
 
@@ -61,8 +61,9 @@ export default function Navbar() {
             <Image
               src="/logo.png"
               alt="Logo"
-              width={64}
+              width={120}
               height={40}
+              style={{ width: 'auto', height: '40px' }}
               priority
             />
           </Link>
@@ -78,8 +79,14 @@ export default function Navbar() {
                 <Link href="/organizaciones/scan" className={linkClass("/organizaciones/scan")}>
                   Escanear
                 </Link>
-                <Link href="/contacto" className={linkClass("/contacto")}>
-                  Contacto
+                <Link href="/eventos/estadisticas" className={linkClass("/eventos/estadisticas")}>
+                  Estadísticas
+                </Link>
+                <Link href="/reportes/ventas" className={linkClass("/reportes/ventas")}>
+                  Ventas
+                </Link>
+                <Link href="/reportes/categorias" className={linkClass("/reportes/categorias")}>
+                  Categorías
                 </Link>
               </>
             )}
@@ -106,6 +113,23 @@ export default function Navbar() {
                 <Link href="/clientes/mis-tickets" className={linkClass("/clientes/mis-tickets")}>
                   Mis tickets
                 </Link>
+                <Link href="/#proximos-eventos" className={linkClass("/#proximos-eventos")}>
+                  Próximos Eventos
+                </Link>
+              </>
+            )}
+
+            {!rol && (
+              <>
+                <Link href="/#proximos-eventos" className={linkClass("/#proximos-eventos")}>
+                  Próximos Eventos
+                </Link>
+                <Link href="/login" className={linkClass("/login")}>
+                  Iniciar Sesión
+                </Link>
+                <Link href="/register" className={linkClass("/register")}>
+                  Registrarse
+                </Link>
               </>
             )}
 
@@ -118,18 +142,29 @@ export default function Navbar() {
 
           {/* Derecha */}
           <div className="flex items-center gap-4">
-            <Link href="/perfil" className="p-2 text-gray-600 hover:text-indigo-600 transition-colors bg-gray-50 rounded-full">
-              <User className="h-6 w-6" />
-            </Link>
-            <button
-              onClick={logout}
-              className={`text-sm font-medium text-gray-500 hover:text-black`}
-            >
-              Cerrar sesión
-            </button>
-            <div className="px-3 py-1 bg-gray-100 border border-gray-200 rounded text-sm font-semibold text-gray-700 max-w-[150px] truncate">
-              {userName || "Cargando..."}
-            </div>
+            {user ? (
+              <>
+                <Link href="/perfil" className="p-2 text-gray-600 hover:text-indigo-600 transition-colors bg-gray-50 rounded-full">
+                  <User className="h-6 w-6" />
+                </Link>
+                <button
+                  onClick={logout}
+                  className={`text-sm font-medium text-gray-500 hover:text-black`}
+                >
+                  Cerrar sesión
+                </button>
+                <div className="px-3 py-1 bg-gray-100 border border-gray-200 rounded text-sm font-semibold text-gray-700 max-w-[150px] truncate">
+                  {userName || "Cargando..."}
+                </div>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition"
+              >
+                Ingresar
+              </Link>
+            )}
           </div>
         </div>
       </div>

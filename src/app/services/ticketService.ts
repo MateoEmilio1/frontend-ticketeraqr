@@ -3,7 +3,7 @@
 import { Ticket } from "@/types/tickets";
 
 // URL base del backend — puede venir de .env.local
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/['"]/g, "");
 
 // ✅ Crear un nuevo ticket
 export async function crearTicket(data: {
