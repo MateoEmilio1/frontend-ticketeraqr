@@ -28,6 +28,8 @@ export default function PurchasePage() {
     const [purchasedTicket, setPurchasedTicket] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [tipoTarjeta, setTipoTarjeta] = useState<"credito" | "debito">("credito");
+    const [marcaTarjeta, setMarcaTarjeta] = useState<"Visa" | "Mastercard" | "Amex" | "Otra">("Visa");
 
     // Estado del formulario de tarjeta
     const [cardData, setCardData] = useState({
@@ -67,13 +69,30 @@ export default function PurchasePage() {
             return;
         }
 
-        // Validación simple de tarjeta - SOLO si el método de pago es tarjeta
+        // Validación de tarjeta - SOLO si el método de pago es tarjeta
         if (metodoPago === "tarjeta") {
             const numeroLimpio = cardData.numero.replace(/\s/g, ''); // Eliminar espacios
-            if (!numeroLimpio || numeroLimpio.length < 16) {
-                setError("Por favor ingresa un número de tarjeta válido (16 dígitos).");
+            if (!numeroLimpio || numeroLimpio.length < 13 || numeroLimpio.length > 19) {
+                setError("Por favor ingresa un número de tarjeta con longitud válida.");
                 return;
             }
+
+            // Algoritmo de Luhn para validar número de tarjeta
+            let sum = 0;
+            let shouldDouble = false;
+            for (let i = numeroLimpio.length - 1; i >= 0; i--) {
+                let digit = parseInt(numeroLimpio.charAt(i), 10);
+                if (shouldDouble) {
+                    if ((digit *= 2) > 9) digit -= 9;
+                }
+                sum += digit;
+                shouldDouble = !shouldDouble;
+            }
+            if (sum % 10 !== 0) {
+                setError("El número de tarjeta ingresado no es válido.");
+                return;
+            }
+
             if (!cardData.nombre) {
                 setError("Por favor ingresa el nombre del titular.");
                 return;
@@ -153,6 +172,17 @@ export default function PurchasePage() {
             ...cardData,
             [e.target.name]: e.target.value
         });
+    };
+
+    const handleMarcaChange = (marca: "Visa" | "Mastercard" | "Amex" | "Otra") => {
+        setMarcaTarjeta(marca);
+        let prefix = "";
+        if (marca === "Visa") prefix = "4";
+        if (marca === "Mastercard") prefix = "54";
+        if (marca === "Amex") prefix = "37";
+
+        // Mantener el resto de los datos pero actualizar el numero actual con el prefijo
+        setCardData({ ...cardData, numero: prefix });
     };
 
     if (loading) {
@@ -342,6 +372,47 @@ export default function PurchasePage() {
 
                                 {metodoPago === "tarjeta" && (
                                     <div className="space-y-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <div className="flex flex-col gap-2 mb-2">
+                                            <label className="text-xs font-bold text-gray-700 uppercase">Marca de Tarjeta</label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {["Visa", "Mastercard", "Amex", "Otra"].map((marca) => (
+                                                    <button
+                                                        key={marca}
+                                                        onClick={() => handleMarcaChange(marca as any)}
+                                                        className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all ${marcaTarjeta === marca
+                                                            ? "border-blue-600 bg-blue-50 text-blue-700"
+                                                            : "border-gray-200 text-gray-600 hover:bg-gray-50 bg-white"
+                                                            }`}
+                                                    >
+                                                        {marca}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-4 mb-2">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="tipoTarjeta"
+                                                    value="credito"
+                                                    checked={tipoTarjeta === "credito"}
+                                                    onChange={() => setTipoTarjeta("credito")}
+                                                    className="w-4 h-4 text-blue-600"
+                                                />
+                                                <span className="text-sm font-semibold text-gray-700">Crédito</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="tipoTarjeta"
+                                                    value="debito"
+                                                    checked={tipoTarjeta === "debito"}
+                                                    onChange={() => setTipoTarjeta("debito")}
+                                                    className="w-4 h-4 text-blue-600"
+                                                />
+                                                <span className="text-sm font-semibold text-gray-700">Débito</span>
+                                            </label>
+                                        </div>
                                         <div className="space-y-2">
                                             <label className="text-xs font-bold text-gray-700 uppercase">Número de Tarjeta</label>
                                             <div className="relative">
@@ -351,7 +422,11 @@ export default function PurchasePage() {
                                                     name="numero"
                                                     placeholder="0000 0000 0000 0000"
                                                     value={cardData.numero}
-                                                    onChange={handleCardChange}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.replace(/\D/g, '');
+                                                        const formatted = val.replace(/(.{4})/g, '$1 ').trim();
+                                                        setCardData({ ...cardData, numero: formatted });
+                                                    }}
                                                     maxLength={19}
                                                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all font-mono bg-white text-gray-900"
                                                 />
@@ -371,7 +446,10 @@ export default function PurchasePage() {
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="flex justify-between items-center mb-2">
                                                 <label className="text-xs font-bold text-gray-700 uppercase">Fecha Vto</label>
-                                                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-6" />
+                                                {marcaTarjeta === "Visa" && <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-4" />}
+                                                {marcaTarjeta === "Mastercard" && <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-5" />}
+                                                {marcaTarjeta === "Amex" && <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/American_Express_logo_%282018%29.svg" alt="Amex" className="h-5" />}
+                                                {marcaTarjeta === "Otra" && <CreditCard className="w-5 h-5 text-gray-400" />}
                                             </div>
                                             <input
                                                 type="text"
