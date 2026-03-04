@@ -21,8 +21,14 @@ export async function createCliente(data: ClienteFormData): Promise<Cliente> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Error al crear cliente");
-  const json = (await res.json()) as ApiResponse<Cliente>;
+
+  const json = await res.json();
+
+  if (!res.ok) {
+    console.error("Error backend:", json);
+    throw new Error(json.message || "Error al crear cliente");
+  }
+
   return json.data;
 }
 
