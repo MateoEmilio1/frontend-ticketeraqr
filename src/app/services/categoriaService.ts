@@ -25,7 +25,13 @@ export async function createCategoria(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Error al crear categoría");
+  if (!res.ok) {
+    const error = await res.json();
+    if (error.details && Array.isArray(error.details)) {
+      throw { isValidationError: true, details: error.details };
+    }
+    throw new Error(error.message || "Error al crear categoría");
+  }
   const json = (await res.json()) as ApiResponse<Categoria>;
   return json.data;
 }
@@ -41,6 +47,9 @@ export async function updateCategoria(
   });
   if (!res.ok) {
     const error = await res.json();
+    if (error.details && Array.isArray(error.details)) {
+      throw { isValidationError: true, details: error.details };
+    }
     throw new Error(error.message || "Error al actualizar categoría");
   }
   const json = (await res.json()) as ApiResponse<Categoria>;

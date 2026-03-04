@@ -62,8 +62,12 @@ function AdminCategoriasView() {
       }
       await loadCategorias();
       setEditingCategoria(null);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.isValidationError) {
+        throw error;
+      }
       console.error("Error al guardar la categoría:", error);
+      alert((error as Error).message || "Ocurrió un error");
     } finally {
       setLoading(false);
     }
