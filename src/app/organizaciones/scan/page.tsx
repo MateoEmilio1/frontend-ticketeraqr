@@ -28,7 +28,7 @@ export default function QrScanPage() {
         setLoading(false);
     };
 
-    const handleScan = async (detectedCodes: any[]) => {
+    const handleScan = async (detectedCodes: { rawValue: string }[]) => {
         if (!scanning || detectedCodes.length === 0) return;
 
         const tokenQr = detectedCodes[0].rawValue;
@@ -55,15 +55,15 @@ export default function QrScanPage() {
                 setData(ticketData);
                 // We don't set success message yet, waiting for confirmation
             }
-        } catch (err: any) {
-            setError(err.message || "Error al procesar el código QR.");
+        } catch (err: unknown) {
+            setError((err as Error).message || "Error al procesar el código QR.");
             setScanning(false); // Stop scanning on error too, user can retry
         } finally {
             setLoading(false);
         }
     };
 
-    const handleError = (error: any) => {
+    const handleError = (error: unknown) => {
         console.error(error);
     };
 
@@ -76,8 +76,8 @@ export default function QrScanPage() {
             setSuccessMsg("Ticket consumido con éxito.");
             // Update local state to reflect consumption if needed, or just show success
             setData({ ...data, estado: 'consumido', fechaConsumo: new Date() });
-        } catch (err: any) {
-            setError(err.message || "Error al consumir el ticket.");
+        } catch (err: unknown) {
+            setError((err as Error).message || "Error al consumir el ticket.");
         } finally {
             setLoading(false);
         }

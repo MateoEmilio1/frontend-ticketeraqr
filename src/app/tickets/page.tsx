@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -26,7 +25,7 @@ export default function TicketsPage() {
 
       setMensaje("✅ Ticket creado correctamente");
       console.log("Ticket creado:", res);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       setMensaje("❌ Error al crear ticket");
     }

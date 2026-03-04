@@ -12,7 +12,7 @@ const categoriaSchema = z.object({
 interface CategoriaFormProps {
   initialData?: Categoria;
   isEditing: boolean;
-  onSubmit: (data: Categoria) => void;
+  onSubmit: (data: Categoria) => Promise<void> | void;
   onCancel?: () => void;
   loading: boolean;
 }
@@ -28,9 +28,10 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
     register,
     handleSubmit,
     setValue,
+    setError,
     formState: { errors },
   } = useForm<Categoria>({
-    resolver: zodResolver(categoriaSchema) as any,
+    resolver: zodResolver(categoriaSchema),
     defaultValues: initialData || {
       idCategoria: 0,
       nombreCategoria: "",
@@ -44,8 +45,20 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
     }
   }, [initialData, setValue]);
 
-  const onFormSubmit = (data: Categoria) => {
-    onSubmit(data);
+  const onFormSubmit = async (data: Categoria) => {
+    try {
+      await onSubmit(data);
+    } catch (err: any) {
+      if (err.isValidationError && err.details) {
+        err.details.forEach((issue: { path: string, message: string }) => {
+          if (issue.path === "nombreCategoria") {
+            setError("nombreCategoria", { type: "backend", message: issue.message });
+          }
+        });
+      } else {
+        throw err;
+      }
+    }
   };
 
   return (

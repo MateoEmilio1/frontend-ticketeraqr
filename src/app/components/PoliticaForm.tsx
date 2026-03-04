@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Politica, PoliticaFormData } from "@/types/politica";
-import { useForm } from "react-hook-form";
+import { useForm, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
@@ -30,7 +30,7 @@ export const PoliticaForm: React.FC<PoliticaFormProps> = ({
         setValue,
         formState: { errors, dirtyFields },
     } = useForm<PoliticaFormData>({
-        resolver: zodResolver(politicaSchema) as any,
+        resolver: zodResolver(politicaSchema) as unknown as Resolver<PoliticaFormData>,
         defaultValues: {
             fechaVigencia: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
                 .toISOString()

@@ -23,7 +23,7 @@ export default function Navbar() {
         return;
       }
       try {
-        const userId = (user as any).id || user.idUsuario;
+        const userId = (user as { id?: number | string; idUsuario?: number }).id || user.idUsuario;
         if (user.rol === "CLIENTE") {
           const clientData = await getClienteByUsuarioId(Number(userId));
           setUserName(`${clientData.nombre} ${clientData.apellido}`);

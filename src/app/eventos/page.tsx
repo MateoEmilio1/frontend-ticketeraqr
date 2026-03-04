@@ -122,7 +122,7 @@ export default function EventosPage() {
       await loadEventos();
     } catch (error) {
       console.error("Error cambiando fecha:", error);
-      alert((error as Error).message);
+      throw error;
     } finally {
       setLoading(false);
     }

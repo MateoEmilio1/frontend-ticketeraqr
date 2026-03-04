@@ -2,37 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { Book, ChevronLeft } from "lucide-react";
+import Link from "next/link";
 import { createOrganizacion } from "@/app/services/organizacionService";
 import { OrganizacionFormData } from "@/types/organizacion";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Book, Building2, ChevronLeft } from "lucide-react";
-import Link from "next/link";
-
-const validarCUIT = (cuit: string): boolean => {
-    cuit = cuit.replace(/[-_]/g, "");
-    if (cuit.length !== 11 || !/^\d+$/.test(cuit)) return false;
-    const multipliers = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
-    let sum = 0;
-    for (let i = 0; i < 10; i++) {
-        sum += parseInt(cuit[i]) * multipliers[i];
-    }
-    let calculatedCheck = 11 - (sum % 11);
-    if (calculatedCheck === 11) calculatedCheck = 0;
-    if (calculatedCheck === 10) calculatedCheck = 9;
-    return parseInt(cuit[10]) === calculatedCheck;
-};
-
-const organizacionSchema = z.object({
-    nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-    ubicacion: z.string().min(5, "La ubicación debe ser más descriptiva"),
-    cuit: z.string()
-        .regex(/^\d{11}$/, "El CUIT debe tener 11 dígitos numéricos")
-        .refine(validarCUIT, "CUIT inválido (falló la validación de integridad)"),
-    mail: z.string().email("Email inválido"),
-    contraseña: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
-});
+// Validaciones de frontend eliminadas a favor de backend
 
 export default function OrganizationRegisterPage() {
     const [serverError, setServerError] = useState<string | null>(null);
@@ -41,15 +16,16 @@ export default function OrganizationRegisterPage() {
     const {
         register,
         handleSubmit,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<OrganizacionFormData>({
-        resolver: zodResolver(organizacionSchema) as any,
         defaultValues: {
             nombre: "",
             ubicacion: "",
             cuit: "",
             mail: "",
             contraseña: "",
+            repetirContraseña: "",
         },
     });
 
@@ -60,7 +36,25 @@ export default function OrganizationRegisterPage() {
             alert("¡Organización registrada con éxito! Ya podés acceder a tu panel.");
             router.push("/login");
         } catch (err: any) {
-            setServerError(err?.message || "Error al registrar la organización.");
+            if (err.isValidationError && err.details) {
+                err.details.forEach((issue: { path: string, message: string }) => {
+                    let fieldName = issue.path;
+
+                    if (fieldName === "body.nombre") fieldName = "nombre";
+                    else if (fieldName === "body.cuit") fieldName = "cuit";
+                    else if (fieldName === "body.ubicacion") fieldName = "ubicacion";
+                    else if (fieldName === "body.mail") fieldName = "mail";
+                    else if (fieldName === "body.contraseña") fieldName = "contraseña";
+                    else if (fieldName === "body.repetirContraseña") fieldName = "repetirContraseña";
+
+                    setError(fieldName as keyof OrganizacionFormData, {
+                        type: "backend",
+                        message: issue.message
+                    });
+                });
+            } else {
+                setServerError((err as Error)?.message || "Error al registrar la organización.");
+            }
         }
     };
 
@@ -162,6 +156,20 @@ export default function OrganizationRegisterPage() {
                                         placeholder="••••••••"
                                     />
                                     {errors.contraseña && <p className="text-red-500 text-xs mt-1">{errors.contraseña.message}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                                        Repetir Contraseña
+                                    </label>
+                                    <input
+                                        type="password"
+                                        {...register("repetirContraseña")}
+                                        className={`block w-full px-4 py-3 rounded-xl border transition-all focus:ring-2 focus:ring-purple-200 outline-none ${errors.repetirContraseña ? "border-red-500" : "border-gray-200 focus:border-purple-500"
+                                            }`}
+                                        placeholder="••••••••"
+                                    />
+                                    {errors.repetirContraseña && <p className="text-red-500 text-xs mt-1">{errors.repetirContraseña.message}</p>}
                                 </div>
                             </div>
 

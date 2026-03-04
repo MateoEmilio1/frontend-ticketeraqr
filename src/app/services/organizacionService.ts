@@ -23,7 +23,13 @@ export async function createOrganizacion(data: OrganizacionFormData): Promise<Or
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error("Error al crear organizacion");
+    if (!res.ok) {
+        const error = await res.json();
+        if (error.details && Array.isArray(error.details)) {
+            throw { isValidationError: true, details: error.details };
+        }
+        throw new Error(error.message || "Error al crear organizacion");
+    }
     const json = (await res.json()) as ApiResponse<Organizacion>;
     return json.data;
 }
@@ -39,8 +45,7 @@ export async function updateOrganizacion(id: number, data: OrganizacionFormData)
     if (!res.ok) {
         const error = await res.json();
         if (error.details && Array.isArray(error.details)) {
-            const messages = error.details.map((d: any) => d.message).join(", ");
-            throw new Error(messages);
+            throw { isValidationError: true, details: error.details };
         }
         throw new Error(error.message || "Error al actualizar organizacion");
     }

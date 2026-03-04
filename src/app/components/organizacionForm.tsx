@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { createOrganizacion } from "@/app/services/organizacionService";
 import { OrganizacionFormData } from "@/types/organizacion";
-import { useForm } from "react-hook-form";
+import { useForm, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
@@ -13,6 +13,15 @@ const organizacionSchema = z.object({
   cuit: z.string().regex(/^\d{11}$/, "CUIT debe tener 11 dígitos"),
   mail: z.string().email("Email inválido"),
   contraseña: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  repetirContraseña: z.string(),
+}).superRefine((data, ctx) => {
+  if (data.contraseña !== data.repetirContraseña) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Las contraseñas no coinciden",
+      path: ["repetirContraseña"],
+    });
+  }
 });
 
 const OrganizacionForm: React.FC = () => {
@@ -22,13 +31,14 @@ const OrganizacionForm: React.FC = () => {
     reset,
     formState: { errors, isSubmitting },
   } = useForm<OrganizacionFormData>({
-    resolver: zodResolver(organizacionSchema) as any,
+    resolver: zodResolver(organizacionSchema) as unknown as Resolver<OrganizacionFormData>,
     defaultValues: {
       nombre: "",
       ubicacion: "",
       cuit: "",
       mail: "",
       contraseña: "",
+      repetirContraseña: "",
     },
   });
 
@@ -40,9 +50,9 @@ const OrganizacionForm: React.FC = () => {
       await createOrganizacion(data);
       alert("Organización creada con éxito");
       reset();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error en createOrganizacion:", err);
-      setServerError(err?.message || "Error al crear organización");
+      setServerError((err as Error)?.message || "Error al crear organización");
     }
   };
 
@@ -125,6 +135,21 @@ const OrganizacionForm: React.FC = () => {
           className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm ${errors.mail ? 'border-red-500' : 'border-gray-300'}`}
         />
         {errors.mail && <p className="text-red-500 text-xs mt-1">{errors.mail.message}</p>}
+      </div>
+      <div>
+        <label
+          htmlFor="repetirContraseña"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Repetir Contraseña:
+        </label>
+        <input
+          type="password"
+          id="repetirContraseña"
+          {...register("repetirContraseña")}
+          className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm ${errors.repetirContraseña ? 'border-red-500' : 'border-gray-300'}`}
+        />
+        {errors.repetirContraseña && <p className="text-red-500 text-xs mt-1">{errors.repetirContraseña.message}</p>}
       </div>
       {serverError && <p className="text-red-500 text-sm">{serverError}</p>}
       <div className="flex gap-2 mt-4">

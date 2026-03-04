@@ -1,51 +1,13 @@
 import { useEffect, useState } from "react";
-import { ClienteFormData } from "@/types/cliente";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-
-const clienteSchema = z.object({
-  mail: z.string().email("Email inválido"),
-  contraseña: z.string().min(6, "La contraseña debe tener al menos 6 caracteres").optional().or(z.literal("")),
-  nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  apellido: z.string().min(2, "El apellido debe tener al menos 2 caracteres"),
-  tipoDoc: z.enum(["DNI", "Pasaporte", "Cédula"]),
-  nroDoc: z.string(),
-  fechaNacimiento: z.string().min(1, "La fecha de nacimiento es requerida"),
-  telefono: z.string().optional().or(z.literal("")),
-  prefijo: z.string().optional(),
-}).superRefine((data, ctx) => {
-  if (data.tipoDoc === "DNI") {
-    if (!/^\d{7,9}$/.test(data.nroDoc)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "DNI debe tener entre 7 y 9 dígitos numéricos",
-        path: ["nroDoc"],
-      });
-    }
-  } else if (data.tipoDoc === "Pasaporte") {
-    if (!/^[a-zA-Z0-9]{5,20}$/.test(data.nroDoc)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Pasaporte debe ser alfanumérico entre 5 y 20 caracteres",
-        path: ["nroDoc"],
-      });
-    }
-  } else if (data.tipoDoc === "Cédula") {
-    if (!/^[a-zA-Z0-9]{5,15}$/.test(data.nroDoc)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Cédula debe ser alfanumérica entre 5 y 15 caracteres",
-        path: ["nroDoc"],
-      });
-    }
-  }
-});
+import { ClienteFormData } from "@/types/cliente";
+// La validación ahora se maneja enteramente en el backend.
+// Las funciones onSubmit deben propagar los errores estructurados al formulario.
 
 interface ClienteFormProps {
   initialData?: ClienteFormData;
   isEditing: boolean;
-  onSubmit: (data: ClienteFormData) => void;
+  onSubmit: (data: ClienteFormData) => Promise<void> | void;
   onCancel?: () => void;
   loading: boolean;
 }
@@ -61,12 +23,13 @@ export const ClienteForm: React.FC<ClienteFormProps> = ({
     register,
     handleSubmit,
     setValue,
+    setError,
     formState: { errors },
   } = useForm<ClienteFormData>({
-    resolver: zodResolver(clienteSchema) as any,
     defaultValues: initialData || {
       mail: "",
       contraseña: "",
+      repetirContraseña: "",
       nombre: "",
       apellido: "",
       tipoDoc: "DNI",
@@ -98,10 +61,35 @@ export const ClienteForm: React.FC<ClienteFormProps> = ({
     }
   }, [initialData, setValue]);
 
-  const onFormSubmit = (data: any) => {
+  const onFormSubmit = async (data: ClienteFormData) => {
     const fullPhone = data.telefono ? `${data.prefijo || countryCode}${data.telefono}` : "";
     const { prefijo, ...submitData } = data;
-    onSubmit({ ...submitData, telefono: fullPhone });
+    try {
+      await onSubmit({ ...submitData, telefono: fullPhone });
+    } catch (err: any) {
+      if (err.isValidationError && err.details) {
+        err.details.forEach((issue: { path: string, message: string }) => {
+          let fieldName = issue.path;
+
+          if (fieldName === "body.mail") fieldName = "mail";
+          else if (fieldName === "body.contraseña") fieldName = "contraseña";
+          else if (fieldName === "body.repetirContraseña") fieldName = "repetirContraseña";
+          else if (fieldName === "body.nombre") fieldName = "nombre";
+          else if (fieldName === "body.apellido") fieldName = "apellido";
+          else if (fieldName === "body.tipoDoc") fieldName = "tipoDoc";
+          else if (fieldName === "body.nroDoc") fieldName = "nroDoc";
+          else if (fieldName === "body.fechaNacimiento") fieldName = "fechaNacimiento";
+          else if (fieldName === "body.telefono") fieldName = "telefono";
+
+          setError(fieldName as keyof ClienteFormData, {
+            type: "backend",
+            message: issue.message
+          });
+        });
+      } else {
+        throw err; // Propagate general errors up
+      }
+    }
   };
 
   return (
@@ -121,14 +109,25 @@ export const ClienteForm: React.FC<ClienteFormProps> = ({
       </div>
 
       {!isEditing && (
-        <div>
-          <label className="block mb-2 text-sm font-medium">Contraseña</label>
-          <input
-            type="password"
-            {...register("contraseña")}
-            className={`w-full p-2 border rounded ${errors.contraseña ? 'border-red-500' : ''}`}
-          />
-          {errors.contraseña && <p className="text-red-500 text-xs mt-1">{errors.contraseña.message}</p>}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block mb-2 text-sm font-medium">Contraseña</label>
+            <input
+              type="password"
+              {...register("contraseña")}
+              className={`w-full p-2 border rounded ${errors.contraseña ? 'border-red-500' : ''}`}
+            />
+            {errors.contraseña && <p className="text-red-500 text-xs mt-1">{errors.contraseña.message}</p>}
+          </div>
+          <div>
+            <label className="block mb-2 text-sm font-medium">Repetir Contraseña</label>
+            <input
+              type="password"
+              {...register("repetirContraseña")}
+              className={`w-full p-2 border rounded ${errors.repetirContraseña ? 'border-red-500' : ''}`}
+            />
+            {errors.repetirContraseña && <p className="text-red-500 text-xs mt-1">{errors.repetirContraseña.message}</p>}
+          </div>
         </div>
       )}
 

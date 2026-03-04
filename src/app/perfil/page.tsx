@@ -26,7 +26,7 @@ export default function PerfilPage() {
             try {
                 if (!user) return;
                 // Standardize ID: JWT has 'id', some services might have 'idUsuario'
-                const userId = (user as any).id || user.idUsuario;
+                const userId = (user as { id?: string | number, idUsuario?: string | number }).id || user.idUsuario;
                 const userRole = user.rol;
 
                 if (!userId || !userRole) {
@@ -35,7 +35,7 @@ export default function PerfilPage() {
                 }
 
                 if (userRole === "CLIENTE") {
-                    const clientData = await getClienteByUsuarioId(parseInt(userId));
+                    const clientData = await getClienteByUsuarioId(parseInt(userId as string));
 
                     let prefijo = "+54";
                     let tel = clientData.telefono || "";
@@ -59,9 +59,9 @@ export default function PerfilPage() {
                         telefono: tel,
                         prefijo: prefijo,
                         contraseña: ""
-                    } as any);
+                    } as ProfileData);
                 } else if (userRole === "ORGANIZACION") {
-                    const orgData = await getOrganizacionByUsuarioId(parseInt(userId));
+                    const orgData = await getOrganizacionByUsuarioId(parseInt(userId as string));
                     setProfile({
                         rol: "ORGANIZACION",
                         idOrganizacion: orgData.idOrganizacion,
@@ -77,7 +77,7 @@ export default function PerfilPage() {
                         nombre: "Administrador",
                         mail: user.mail,
                         contraseña: ""
-                    } as any);
+                    } as ProfileData);
                 }
             } catch (error) {
                 console.error("Error cargando perfil:", error);
@@ -101,7 +101,7 @@ export default function PerfilPage() {
 
         try {
             if (profile.rol === "CLIENTE" && profile.idCliente) {
-                const fullPhone = profile.telefono ? `${(profile as any).prefijo || "+54"}${profile.telefono}` : "";
+                const fullPhone = profile.telefono ? `${('prefijo' in profile ? profile.prefijo : "+54")}${profile.telefono}` : "";
                 await updateCliente(profile.idCliente, { ...profile, telefono: fullPhone });
             } else if (profile.rol === "ORGANIZACION" && profile.idOrganizacion) {
                 await updateOrganizacion(profile.idOrganizacion, profile);
@@ -109,9 +109,14 @@ export default function PerfilPage() {
 
             setMessage({ text: "Perfil actualizado con éxito", type: "success" });
             setProfile(prev => prev ? { ...prev, contraseña: "" } : null);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error actualizando perfil:", error);
-            setMessage({ text: (error as Error).message, type: "error" });
+            if (error.isValidationError && error.details) {
+                const errorStr = error.details.map((d: any) => d.message).join(", ");
+                setMessage({ text: errorStr, type: "error" });
+            } else {
+                setMessage({ text: (error as Error).message || "Ocurrió un error", type: "error" });
+            }
         } finally {
             setSaving(false);
         }
@@ -148,7 +153,7 @@ export default function PerfilPage() {
                                     <input
                                         type="text"
                                         value={profile?.nombre || ""}
-                                        onChange={e => setProfile(prev => ({ ...prev!, nombre: e.target.value } as any))}
+                                        onChange={e => setProfile(prev => ({ ...prev!, nombre: e.target.value } as ProfileData))}
                                         className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none disabled:bg-gray-50"
                                         required
                                         disabled={profile?.rol === 'ADMIN'}
@@ -162,7 +167,7 @@ export default function PerfilPage() {
                                     <input
                                         type="text"
                                         value={profile.apellido}
-                                        onChange={e => setProfile(prev => ({ ...prev!, apellido: e.target.value } as any))}
+                                        onChange={e => setProfile(prev => ({ ...prev!, apellido: e.target.value } as ProfileData))}
                                         className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none"
                                         required
                                     />
@@ -177,7 +182,7 @@ export default function PerfilPage() {
                                     <input
                                         type="text"
                                         value={profile.ubicacion}
-                                        onChange={e => setProfile(prev => ({ ...prev!, ubicacion: e.target.value } as any))}
+                                        onChange={e => setProfile(prev => ({ ...prev!, ubicacion: e.target.value } as ProfileData))}
                                         className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none"
                                         required
                                     />
@@ -191,7 +196,7 @@ export default function PerfilPage() {
                                 <input
                                     type="email"
                                     value={profile?.mail || ""}
-                                    onChange={e => setProfile(prev => ({ ...prev!, mail: e.target.value } as any))}
+                                    onChange={e => setProfile(prev => ({ ...prev!, mail: e.target.value } as ProfileData))}
                                     className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none disabled:bg-gray-50"
                                     required
                                     disabled={profile?.rol === 'ADMIN'}
@@ -205,7 +210,7 @@ export default function PerfilPage() {
                                         <input
                                             type="date"
                                             value={profile.fechaNacimiento}
-                                            onChange={e => setProfile(prev => ({ ...prev!, fechaNacimiento: e.target.value } as any))}
+                                            onChange={e => setProfile(prev => ({ ...prev!, fechaNacimiento: e.target.value } as ProfileData))}
                                             className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none"
                                             required
                                         />
@@ -215,7 +220,7 @@ export default function PerfilPage() {
                                         <input
                                             type="text"
                                             value={profile.tipoDoc}
-                                            onChange={e => setProfile(prev => ({ ...prev!, tipoDoc: e.target.value } as any))}
+                                            onChange={e => setProfile(prev => ({ ...prev!, tipoDoc: e.target.value } as ProfileData))}
                                             className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none"
                                             required
                                         />
@@ -225,7 +230,7 @@ export default function PerfilPage() {
                                         <input
                                             type="text"
                                             value={profile.nroDoc}
-                                            onChange={e => setProfile(prev => ({ ...prev!, nroDoc: e.target.value } as any))}
+                                            onChange={e => setProfile(prev => ({ ...prev!, nroDoc: e.target.value } as ProfileData))}
                                             className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none"
                                             required
                                         />
@@ -234,8 +239,8 @@ export default function PerfilPage() {
                                         <label className="text-sm font-bold text-gray-700">Teléfono</label>
                                         <div className="flex gap-2">
                                             <select
-                                                value={(profile as any).prefijo || "+54"}
-                                                onChange={e => setProfile(prev => ({ ...prev!, prefijo: e.target.value } as any))}
+                                                value={('prefijo' in profile ? profile.prefijo : "+54")}
+                                                onChange={e => setProfile(prev => ({ ...prev!, prefijo: e.target.value } as ProfileData))}
                                                 className="w-28 px-2 py-3 border-2 border-gray-100 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none bg-white"
                                             >
                                                 <option value="+54">+54 (AR)</option>
@@ -250,7 +255,7 @@ export default function PerfilPage() {
                                             <input
                                                 type="tel"
                                                 value={profile.telefono || ""}
-                                                onChange={e => setProfile(prev => ({ ...prev!, telefono: e.target.value } as any))}
+                                                onChange={e => setProfile(prev => ({ ...prev!, telefono: e.target.value } as ProfileData))}
                                                 className="flex-1 px-4 py-3 border-2 border-gray-100 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none"
                                                 placeholder="Tu número de teléfono"
                                             />
@@ -267,7 +272,7 @@ export default function PerfilPage() {
                                     <input
                                         type="text"
                                         value={profile.cuit}
-                                        onChange={e => setProfile(prev => ({ ...prev!, cuit: e.target.value } as any))}
+                                        onChange={e => setProfile(prev => ({ ...prev!, cuit: e.target.value } as ProfileData))}
                                         className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none"
                                         required
                                     />
@@ -284,7 +289,7 @@ export default function PerfilPage() {
                                 <input
                                     type="password"
                                     value={profile?.contraseña || ""}
-                                    onChange={e => setProfile(prev => ({ ...prev!, contraseña: e.target.value } as any))}
+                                    onChange={e => setProfile(prev => ({ ...prev!, contraseña: e.target.value } as ProfileData))}
                                     className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none"
                                     placeholder="••••••••"
                                 />

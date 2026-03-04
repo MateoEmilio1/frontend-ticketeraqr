@@ -6,7 +6,7 @@ interface EventoTableProps {
   eventos: Evento[];
   categorias: Categoria[];
   loading: boolean;
-  onChangeDate: (id: number, nuevaFecha: string) => void;
+  onChangeDate: (id: number, nuevaFecha: string) => Promise<void>;
   onDelete: (id: number) => void;
   onCancel: (id: number) => void;
 }
@@ -22,19 +22,42 @@ export const EventoTable: React.FC<EventoTableProps> = ({
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedEvento, setSelectedEvento] = useState<Evento | null>(null);
   const [nuevaFecha, setNuevaFecha] = useState("");
+  const [errorFecha, setErrorFecha] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const openDateModal = (evento: Evento) => {
     setSelectedEvento(evento);
     setNuevaFecha(new Date(evento.fechaHoraEvento).toISOString().slice(0, 16));
+    setErrorFecha("");
     setModalOpen(true);
   };
 
-  const handleDateChangeSubmit = () => {
+  const handleDateChangeSubmit = async () => {
     if (selectedEvento && nuevaFecha) {
-      onChangeDate(selectedEvento.idEvento, nuevaFecha);
-      setModalOpen(false);
+      // Validar que la fecha no sea anterior a hoy
+      const selectedDate = new Date(nuevaFecha);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Ignorar horas para la comparación
+
+      if (selectedDate < today) {
+        setErrorFecha("La fecha del evento no puede ser previa al día de hoy");
+        return;
+      }
+
+      setErrorFecha("");
+      setIsSubmitting(true);
+      try {
+        await onChangeDate(selectedEvento.idEvento, nuevaFecha);
+        setModalOpen(false);
+      } catch (error) {
+        setErrorFecha((error as Error).message || "Ha ocurrido un error al cambiar la fecha");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
+
+  const todayIsoString = new Date().toISOString().slice(0, 16);
   return (
     <div className="overflow-x-auto rounded-lg shadow">
       <table className="min-w-full divide-y divide-gray-200">
@@ -133,23 +156,32 @@ export const EventoTable: React.FC<EventoTableProps> = ({
               <label className="block text-sm font-medium text-gray-700 mb-1">Nueva Fecha y Hora</label>
               <input
                 type="datetime-local"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                min={todayIsoString}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${errorFecha ? 'border-red-500' : ''}`}
                 value={nuevaFecha}
-                onChange={(e) => setNuevaFecha(e.target.value)}
+                onChange={(e) => {
+                  setNuevaFecha(e.target.value);
+                  if (errorFecha) setErrorFecha("");
+                }}
               />
+              {errorFecha && (
+                <p className="mt-1 text-sm text-red-600 font-medium">{errorFecha}</p>
+              )}
             </div>
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setModalOpen(false)}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                disabled={isSubmitting}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleDateChangeSubmit}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                disabled={isSubmitting || !nuevaFecha}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
               >
-                Guardar
+                {isSubmitting ? "Guardando..." : "Guardar"}
               </button>
             </div>
           </div>
