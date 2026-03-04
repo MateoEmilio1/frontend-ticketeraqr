@@ -283,150 +283,157 @@ export default function PurchasePage() {
 
                     {/* Purchase Sidebar */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 sticky top-8">
-                            <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                                <TicketIcon className="w-6 h-6 text-blue-600" />
-                                Seleccionar Entradas
-                            </h3>
-
-                            <div className="space-y-4 mb-8">
-                                {evento.tipoTickets.map((tipo) => (
-                                    <button
-                                        key={tipo.idTipoTicket}
-                                        onClick={() => setSelectedTipo(tipo)}
-                                        className={`w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 ${selectedTipo?.idTipoTicket === tipo.idTipoTicket
-                                            ? "border-blue-600 bg-blue-50/50 ring-4 ring-blue-50"
-                                            : "border-gray-100 hover:border-blue-200"
-                                            }`}
-                                    >
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className="font-bold text-gray-900">{tipo.tipo}</span>
-                                            <span className="text-xl font-extrabold text-blue-600">${tipo.precio}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center text-sm text-gray-500">
-                                            <span>{tipo.acceso}</span>
-                                            {tipo.sector && <span className="italic">Sector: {tipo.sector}</span>}
-                                        </div>
-                                    </button>
-                                ))}
+                        {evento.estado === 'CANCELADO' ? (
+                            <div className="bg-red-50 rounded-3xl shadow-xl border border-red-100 p-8 sticky top-8 text-center">
+                                <h3 className="text-2xl font-bold text-red-700 mb-4">Evento Cancelado</h3>
+                                <p className="text-red-600 font-medium">Este evento ha sido cancelado por la organización y la venta de entradas de este evento se ha cerrado. Se realizarán reembolsos automáticos.</p>
                             </div>
+                        ) : (
+                            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 sticky top-8">
+                                <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                    <TicketIcon className="w-6 h-6 text-blue-600" />
+                                    Seleccionar Entradas
+                                </h3>
 
-                            {/* Payment Method */}
-                            <div className="space-y-4 mb-8 pt-4 border-t border-gray-100">
-                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Método de Pago</h4>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button
-                                        onClick={() => setMetodoPago("tarjeta")}
-                                        className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${metodoPago === "tarjeta" ? "border-blue-600 bg-blue-50" : "border-gray-100 hover:border-gray-50"
-                                            }`}
-                                    >
-                                        <CreditCard className={`w-6 h-6 mb-2 ${metodoPago === "tarjeta" ? "text-blue-600" : "text-gray-400"}`} />
-                                        <span className={`text-xs font-bold ${metodoPago === "tarjeta" ? "text-blue-600" : "text-gray-600"}`}>Tarjeta</span>
-                                    </button>
-                                    <button
-                                        onClick={() => setMetodoPago("mercadopago")}
-                                        className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${metodoPago === "mercadopago" ? "border-sky-500 bg-sky-50" : "border-gray-100 hover:border-gray-50"
-                                            }`}
-                                    >
-                                        <div className={`w-6 h-6 mb-2 flex items-center justify-center text-lg font-black ${metodoPago === "mercadopago" ? "text-sky-600" : "text-gray-400"}`}>M</div>
-                                        <span className={`text-xs font-bold ${metodoPago === "mercadopago" ? "text-sky-600" : "text-gray-600"}`}>Mercado Pago</span>
-                                    </button>
+                                <div className="space-y-4 mb-8">
+                                    {evento.tipoTickets.map((tipo) => (
+                                        <button
+                                            key={tipo.idTipoTicket}
+                                            onClick={() => setSelectedTipo(tipo)}
+                                            className={`w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 ${selectedTipo?.idTipoTicket === tipo.idTipoTicket
+                                                ? "border-blue-600 bg-blue-50/50 ring-4 ring-blue-50"
+                                                : "border-gray-100 hover:border-blue-200"
+                                                }`}
+                                        >
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="font-bold text-gray-900">{tipo.tipo}</span>
+                                                <span className="text-xl font-extrabold text-blue-600">${tipo.precio}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-sm text-gray-500">
+                                                <span>{tipo.acceso}</span>
+                                                {tipo.sector && <span className="italic">Sector: {tipo.sector}</span>}
+                                            </div>
+                                        </button>
+                                    ))}
                                 </div>
-                            </div>
 
-                            {metodoPago === "tarjeta" && (
-                                <div className="space-y-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-gray-700 uppercase">Número de Tarjeta</label>
-                                        <div className="relative">
-                                            <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                {/* Payment Method */}
+                                <div className="space-y-4 mb-8 pt-4 border-t border-gray-100">
+                                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Método de Pago</h4>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                            onClick={() => setMetodoPago("tarjeta")}
+                                            className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${metodoPago === "tarjeta" ? "border-blue-600 bg-blue-50" : "border-gray-100 hover:border-gray-50"
+                                                }`}
+                                        >
+                                            <CreditCard className={`w-6 h-6 mb-2 ${metodoPago === "tarjeta" ? "text-blue-600" : "text-gray-400"}`} />
+                                            <span className={`text-xs font-bold ${metodoPago === "tarjeta" ? "text-blue-600" : "text-gray-600"}`}>Tarjeta</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setMetodoPago("mercadopago")}
+                                            className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${metodoPago === "mercadopago" ? "border-sky-500 bg-sky-50" : "border-gray-100 hover:border-gray-50"
+                                                }`}
+                                        >
+                                            <div className={`w-6 h-6 mb-2 flex items-center justify-center text-lg font-black ${metodoPago === "mercadopago" ? "text-sky-600" : "text-gray-400"}`}>M</div>
+                                            <span className={`text-xs font-bold ${metodoPago === "mercadopago" ? "text-sky-600" : "text-gray-600"}`}>Mercado Pago</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {metodoPago === "tarjeta" && (
+                                    <div className="space-y-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-700 uppercase">Número de Tarjeta</label>
+                                            <div className="relative">
+                                                <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                <input
+                                                    type="text"
+                                                    name="numero"
+                                                    placeholder="0000 0000 0000 0000"
+                                                    value={cardData.numero}
+                                                    onChange={handleCardChange}
+                                                    maxLength={19}
+                                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all font-mono bg-white text-gray-900"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-700 uppercase">Titular</label>
                                             <input
                                                 type="text"
-                                                name="numero"
-                                                placeholder="0000 0000 0000 0000"
-                                                value={cardData.numero}
+                                                name="nombre"
+                                                placeholder="Nombre como figura en la tarjeta"
+                                                value={cardData.nombre}
                                                 onChange={handleCardChange}
-                                                maxLength={19}
-                                                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all font-mono bg-white text-gray-900"
+                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all bg-white text-gray-900"
                                             />
                                         </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-gray-700 uppercase">Titular</label>
-                                        <input
-                                            type="text"
-                                            name="nombre"
-                                            placeholder="Nombre como figura en la tarjeta"
-                                            value={cardData.nombre}
-                                            onChange={handleCardChange}
-                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all bg-white text-gray-900"
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <label className="text-xs font-bold text-gray-700 uppercase">Fecha Vto</label>
-                                            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-6" />
-                                        </div>
-                                        <input
-                                            type="text"
-                                            name="vencimiento"
-                                            placeholder="MM/AA"
-                                            value={cardData.vencimiento}
-                                            onChange={handleCardChange}
-                                            maxLength={5}
-                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-center bg-white text-gray-900"
-                                        />
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-gray-700 uppercase">CVV</label>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <label className="text-xs font-bold text-gray-700 uppercase">Fecha Vto</label>
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-6" />
+                                            </div>
                                             <input
-                                                type="password"
-                                                name="cvv"
-                                                placeholder="123"
-                                                value={cardData.cvv}
+                                                type="text"
+                                                name="vencimiento"
+                                                placeholder="MM/AA"
+                                                value={cardData.vencimiento}
                                                 onChange={handleCardChange}
-                                                maxLength={4}
+                                                maxLength={5}
                                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-center bg-white text-gray-900"
                                             />
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-gray-700 uppercase">CVV</label>
+                                                <input
+                                                    type="password"
+                                                    name="cvv"
+                                                    placeholder="123"
+                                                    value={cardData.cvv}
+                                                    onChange={handleCardChange}
+                                                    maxLength={4}
+                                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-center bg-white text-gray-900"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
+                                )}
+
+                                {error && (
+                                    <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm mb-6 flex items-start gap-2">
+                                        <span className="font-bold">Error:</span> {error}
+                                    </div>
+                                )}
+
+                                <div className="space-y-6 pt-6 border-t border-gray-100">
+                                    <div className="flex justify-between items-center text-lg">
+                                        <span className="text-gray-600">Total</span>
+                                        <span className="text-3xl font-black text-gray-900">${selectedTipo?.precio || 0}</span>
+                                    </div>
+
+                                    <button
+                                        onClick={handlePurchase}
+                                        disabled={purchasing || !selectedTipo}
+                                        className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-lg hover:bg-blue-700 transition-all shadow-xl hover:shadow-blue-200 disabled:bg-gray-200 disabled:shadow-none flex items-center justify-center gap-3"
+                                    >
+                                        {purchasing ? (
+                                            <>
+                                                <Loader2 className="w-6 h-6 animate-spin" />
+                                                Procesando...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CreditCard className="w-6 h-6" />
+                                                Confirmar Compra
+                                            </>
+                                        )}
+                                    </button>
+
+                                    <p className="text-center text-xs text-gray-400">
+                                        Al confirmar, aceptás nuestras políticas de reembolso y términos de servicio.
+                                    </p>
                                 </div>
-                            )}
-
-                            {error && (
-                                <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm mb-6 flex items-start gap-2">
-                                    <span className="font-bold">Error:</span> {error}
-                                </div>
-                            )}
-
-                            <div className="space-y-6 pt-6 border-t border-gray-100">
-                                <div className="flex justify-between items-center text-lg">
-                                    <span className="text-gray-600">Total</span>
-                                    <span className="text-3xl font-black text-gray-900">${selectedTipo?.precio || 0}</span>
-                                </div>
-
-                                <button
-                                    onClick={handlePurchase}
-                                    disabled={purchasing || !selectedTipo}
-                                    className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-lg hover:bg-blue-700 transition-all shadow-xl hover:shadow-blue-200 disabled:bg-gray-200 disabled:shadow-none flex items-center justify-center gap-3"
-                                >
-                                    {purchasing ? (
-                                        <>
-                                            <Loader2 className="w-6 h-6 animate-spin" />
-                                            Procesando...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <CreditCard className="w-6 h-6" />
-                                            Confirmar Compra
-                                        </>
-                                    )}
-                                </button>
-
-                                <p className="text-center text-xs text-gray-400">
-                                    Al confirmar, aceptás nuestras políticas de reembolso y términos de servicio.
-                                </p>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </main>

@@ -11,7 +11,7 @@ interface EventGridProps {
 }
 
 export const EventGrid: React.FC<EventGridProps> = ({ eventos, loading }) => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     if (loading) {
@@ -45,7 +45,7 @@ export const EventGrid: React.FC<EventGridProps> = ({ eventos, loading }) => {
                 isOpen={isAuthModalOpen}
                 onClose={() => setIsAuthModalOpen(false)}
             />
-            {eventos.map((evento) => (
+            {eventos.filter(e => e.estado !== 'CANCELADO').map((evento) => (
                 <div
                     key={evento.idEvento}
                     className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col"
@@ -98,14 +98,16 @@ export const EventGrid: React.FC<EventGridProps> = ({ eventos, loading }) => {
                                         ${Math.min(...evento.tipoTickets.map(t => t.precio))}
                                     </p>
                                 </div>
-                                <Link
-                                    href={`/clientes/comprar/${evento.idEvento}`}
-                                    onClick={handleComprarClick}
-                                    className="flex-1 bg-black text-white text-center py-2 rounded-xl font-bold hover:bg-gray-800 transition-all active:scale-95 flex items-center justify-center gap-2"
-                                >
-                                    Comprar
-                                    <ArrowRight className="w-4 h-4" />
-                                </Link>
+                                {(!isAuthenticated || user?.rol === 'CLIENTE') && (
+                                    <Link
+                                        href={`/clientes/comprar/${evento.idEvento}`}
+                                        onClick={handleComprarClick}
+                                        className="flex-1 bg-black text-white text-center py-2 rounded-xl font-bold hover:bg-gray-800 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                    >
+                                        Comprar
+                                        <ArrowRight className="w-4 h-4" />
+                                    </Link>
+                                )}
                             </div>
                         </div>
                     </div>

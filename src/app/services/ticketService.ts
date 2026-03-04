@@ -113,3 +113,34 @@ export async function refundTicket(nroTicket: number) {
   }
   return res.json();
 }
+
+// ✅ Aceptar transferencia
+export async function acceptTransfer(nroTicket: number) {
+  const res = await fetch(`${API_URL}/api/tickets/aceptar-transferencia`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nroTicket }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Error al aceptar transferencia");
+  }
+  return res.json();
+}
+
+// ✅ Rechazar transferencia
+export async function rejectTransfer(nroTicket: number) {
+  const res = await fetch(`${API_URL}/api/tickets/rechazar-transferencia`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nroTicket }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Error al rechazar transferencia");
+  }
+  return res.json();
+}
+

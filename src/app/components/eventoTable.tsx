@@ -89,27 +89,23 @@ export const EventoTable: React.FC<EventoTableProps> = ({
                 </ul>
               </td>
               <td className="px-4 py-3 space-x-2 whitespace-nowrap">
-                <button
-                  onClick={() => openDateModal(evento)}
-                  className="text-blue-600 hover:text-blue-800"
-                >
-                  Cambiar fecha
-                </button>
-                {evento.estado !== 'CANCELADO' && (
-                  <button
-                    onClick={() => onCancel(evento.idEvento)}
-                    className="text-orange-600 hover:text-orange-800"
-                  >
-                    Cancelar
-                  </button>
-                )}
-                {evento.estado === 'CANCELADO' && (
-                  <button
-                    onClick={() => onDelete(evento.idEvento)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    Eliminar
-                  </button>
+                {evento.estado !== 'CANCELADO' ? (
+                  <>
+                    <button
+                      onClick={() => openDateModal(evento)}
+                      className="text-blue-600 hover:text-blue-800 mr-2"
+                    >
+                      Cambiar fecha
+                    </button>
+                    <button
+                      onClick={() => onCancel(evento.idEvento)}
+                      className="text-orange-600 hover:text-orange-800 mr-2"
+                    >
+                      Cancelar
+                    </button>
+                  </>
+                ) : (
+                  <span className="text-gray-500 italic text-sm">Sin acciones</span>
                 )}
               </td>
             </tr>
