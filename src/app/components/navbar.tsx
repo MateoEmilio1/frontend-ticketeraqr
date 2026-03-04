@@ -9,7 +9,6 @@ import { useEffect, useState } from "react";
 import { getClienteByUsuarioId } from "@/app/services/clientService";
 import { getOrganizacionByUsuarioId } from "@/app/services/organizacionService";
 
-
 export default function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
@@ -22,8 +21,11 @@ export default function Navbar() {
         setUserName("");
         return;
       }
+
       try {
-        const userId = (user as any).id || user.idUsuario;
+        // 🔹 CORRECCIÓN AQUÍ
+        const userId = user.idUsuario ?? (user as any).id;
+
         if (user.rol === "CLIENTE") {
           const clientData = await getClienteByUsuarioId(Number(userId));
           setUserName(`${clientData.nombre} ${clientData.apellido}`);
@@ -35,13 +37,14 @@ export default function Navbar() {
         }
       } catch (error) {
         console.error("Error fetching user name for navbar:", error);
+        setUserName("");
       }
     };
+
     fetchUserName();
   }, [user]);
 
   if (pathname === "/login") return null;
-  // if (!user) return null; // MOVED: show navbar for guests
 
   const isActive = (href: string) => pathname.startsWith(href);
 
@@ -63,7 +66,7 @@ export default function Navbar() {
               alt="Logo"
               width={120}
               height={40}
-              style={{ width: 'auto', height: '40px' }}
+              style={{ width: "auto", height: "40px" }}
               priority
             />
           </Link>
@@ -93,16 +96,10 @@ export default function Navbar() {
 
             {rol === "ADMIN" && (
               <>
-                <Link
-                  href="/categorias"
-                  className={linkClass("/categorias")}
-                >
+                <Link href="/categorias" className={linkClass("/categorias")}>
                   Mis categorías
                 </Link>
-                <Link
-                  href="/politicas"
-                  className={linkClass("/politicas")}
-                >
+                <Link href="/politicas" className={linkClass("/politicas")}>
                   Establecer políticas
                 </Link>
               </>
@@ -144,15 +141,20 @@ export default function Navbar() {
           <div className="flex items-center gap-4">
             {user ? (
               <>
-                <Link href="/perfil" className="p-2 text-gray-600 hover:text-indigo-600 transition-colors bg-gray-50 rounded-full">
+                <Link
+                  href="/perfil"
+                  className="p-2 text-gray-600 hover:text-indigo-600 transition-colors bg-gray-50 rounded-full"
+                >
                   <User className="h-6 w-6" />
                 </Link>
+
                 <button
                   onClick={logout}
-                  className={`text-sm font-medium text-gray-500 hover:text-black`}
+                  className="text-sm font-medium text-gray-500 hover:text-black"
                 >
                   Cerrar sesión
                 </button>
+
                 <div className="px-3 py-1 bg-gray-100 border border-gray-200 rounded text-sm font-semibold text-gray-700 max-w-[150px] truncate">
                   {userName || "Cargando..."}
                 </div>
@@ -166,6 +168,7 @@ export default function Navbar() {
               </Link>
             )}
           </div>
+
         </div>
       </div>
     </nav>
