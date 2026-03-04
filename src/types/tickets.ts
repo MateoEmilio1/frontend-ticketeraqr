@@ -7,7 +7,8 @@ export interface Ticket {
   tokenQr: string;
   idTipoTicket: number;
   idCliente: number;
-  estado: "pagado" | "consumido" | "expirado" | "reembolsado" | "pendiente";
+  estado: "pagado" | "consumido" | "expirado" | "reembolsado" | "pendiente" | "pendiente_transferencia";
+  ofertaTransferenciaIdCliente?: number;
   metodoPago?: string;
   cliente?: {
     nombre: string;

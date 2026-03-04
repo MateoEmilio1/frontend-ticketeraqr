@@ -7,11 +7,12 @@ import { useRouter } from "next/navigation";
 import { Calendar, Tag, QrCode, Ticket as TicketIcon, AlertCircle, CreditCard, Send, RefreshCcw } from "lucide-react";
 import QrModal from "@/app/components/ui/QrModal";
 import { useAuth } from "@/context/AuthContext";
-import { transferTicket, refundTicket } from "@/app/services/ticketService";
+import { transferTicket, refundTicket, acceptTransfer, rejectTransfer } from "@/app/services/ticketService";
 import { getClienteByUsuarioId } from "@/app/services/clientService";
 
 export default function MisTicketsPage() {
     const [tickets, setTickets] = useState<Ticket[]>([]);
+    const [currentClienteId, setCurrentClienteId] = useState<number | null>(null);
     // const [loading, setLoading] = useState(true); // useAuth loading is better
     const [dataLoading, setDataLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -42,6 +43,7 @@ export default function MisTicketsPage() {
                     // Primero obtener el idCliente usando el idUsuario
                     const cliente = await getClienteByUsuarioId(Number(idUsuario));
                     if (cliente && cliente.idCliente) {
+                        setCurrentClienteId(cliente.idCliente);
                         const data = await getTicketsByCliente(Number(cliente.idCliente));
                         setTickets(data);
                     } else {
@@ -132,7 +134,7 @@ export default function MisTicketsPage() {
         }
     };
 
-    const getStatusColor = (status: Ticket["estado"]) => {
+    const getStatusColor = (status: string) => {
         switch (status) {
             case "pagado":
                 return "bg-green-100 text-green-800 border-green-200";
@@ -142,22 +144,53 @@ export default function MisTicketsPage() {
                 return "bg-red-100 text-red-800 border-red-200";
             case "reembolsado":
                 return "bg-yellow-100 text-yellow-800 border-yellow-200";
+            case "pendiente_transferencia":
+                return "bg-purple-100 text-purple-800 border-purple-200";
             default:
                 return "bg-blue-100 text-blue-800 border-blue-200";
         }
     };
 
-    const getStatusLabel = (status: Ticket["estado"]) => {
+    const getStatusLabel = (status: string) => {
         switch (status) {
             case "pagado": return "Activo";
             case "consumido": return "Usado";
             case "expirado": return "Vencido";
             case "reembolsado": return "Reembolsado";
+            case "pendiente_transferencia": return "Transfiriendo";
             default: return status;
         }
     };
 
 
+
+    const handleAcceptTransfer = async (nroTicket: number) => {
+        if (!window.confirm("¿Estás seguro que deseas recibir este ticket? Pasará a ser tuyo y el antiguo dueño ya no podrá usarlo.")) return;
+        setActionLoading(true);
+        try {
+            await acceptTransfer(nroTicket);
+            alert("Transferencia aceptada con éxito.");
+            fetchTickets();
+        } catch (err) {
+            alert((err as Error).message);
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleRejectTransfer = async (nroTicket: number) => {
+        if (!window.confirm("¿Estás seguro que deseas rechazar esta transferencia? El ticket volverá a ser propiedad del emisor original.")) return;
+        setActionLoading(true);
+        try {
+            await rejectTransfer(nroTicket);
+            alert("Transferencia rechazada.");
+            fetchTickets();
+        } catch (err) {
+            alert((err as Error).message);
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -248,6 +281,29 @@ export default function MisTicketsPage() {
                                         <span className="text-xs text-orange-600 font-medium italic">
                                             Podrás ver el QR cuando finalices el pago
                                         </span>
+                                    ) : (ticket.estado === 'pendiente_transferencia' as any) ? (
+                                        (ticket as any).ofertaTransferenciaIdCliente === currentClienteId ? (
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleAcceptTransfer(ticket.nroTicket)}
+                                                    disabled={actionLoading}
+                                                    className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition"
+                                                >
+                                                    Aceptar
+                                                </button>
+                                                <button
+                                                    onClick={() => handleRejectTransfer(ticket.nroTicket)}
+                                                    disabled={actionLoading}
+                                                    className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition"
+                                                >
+                                                    Rechazar
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-purple-600 font-medium italic">
+                                                Aguardando aceptación
+                                            </span>
+                                        )
                                     ) : (
                                         <div className="flex gap-2">
                                             {ticket.estado === 'pagado' && (
