@@ -70,7 +70,7 @@ export interface ReporteHora {
   recaudacion: number;
 }
 
-export async function getVentasReport(filters: any): Promise<ReporteHora[]> {
+export async function getVentasReport(filters: { fechaInicio?: string; fechaFin?: string; idCategoria?: string; idEvento?: string; idTipoTicket?: string; idOrganizacion?: number | string }): Promise<ReporteHora[]> {
   const params = new URLSearchParams();
   if (filters.fechaInicio) params.append("fechaInicio", filters.fechaInicio);
   if (filters.fechaFin) params.append("fechaFin", filters.fechaFin);

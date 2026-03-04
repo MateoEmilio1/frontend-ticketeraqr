@@ -30,7 +30,7 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
     setValue,
     formState: { errors },
   } = useForm<Categoria>({
-    resolver: zodResolver(categoriaSchema) as any,
+    resolver: zodResolver(categoriaSchema),
     defaultValues: initialData || {
       idCategoria: 0,
       nombreCategoria: "",

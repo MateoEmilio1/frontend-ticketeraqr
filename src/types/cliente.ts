@@ -9,6 +9,7 @@ export interface ClienteFormData {
   telefono?: string;
   prefijo?: string;
   idCliente?: number;
+  repetirContraseña?: string;
 }
 
 export interface Cliente {

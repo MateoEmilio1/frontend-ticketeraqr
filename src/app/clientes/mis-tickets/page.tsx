@@ -281,8 +281,8 @@ export default function MisTicketsPage() {
                                         <span className="text-xs text-orange-600 font-medium italic">
                                             Podrás ver el QR cuando finalices el pago
                                         </span>
-                                    ) : (ticket.estado === 'pendiente_transferencia' as any) ? (
-                                        (ticket as any).ofertaTransferenciaIdCliente === currentClienteId ? (
+                                    ) : (ticket.estado === 'pendiente_transferencia' as string) ? (
+                                        (ticket as Ticket & { ofertaTransferenciaIdCliente?: number }).ofertaTransferenciaIdCliente === currentClienteId ? (
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => handleAcceptTransfer(ticket.nroTicket)}

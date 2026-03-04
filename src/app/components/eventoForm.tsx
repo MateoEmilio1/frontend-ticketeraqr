@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { EventoFormData } from "@/types/evento";
 import { Categoria } from "@/types/categoria";
 import { getCategorias } from "@/app/services/categoriaService";
-import { useForm } from "react-hook-form";
+import { useForm, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
@@ -25,7 +25,7 @@ interface EventoFormProps {
   onSubmit: (data: EventoFormData) => void;
   onCancel?: () => void;
   loading: boolean;
-  tipoTickets: any[];
+  tipoTickets: { tipo: string; acceso: string; precio: number; cantMaxPorTipo: number }[];
 }
 
 export const EventoForm: React.FC<EventoFormProps> = ({
@@ -48,7 +48,7 @@ export const EventoForm: React.FC<EventoFormProps> = ({
     watch,
     formState: { errors },
   } = useForm<EventoFormData>({
-    resolver: zodResolver(eventoSchema) as any,
+    resolver: zodResolver(eventoSchema) as unknown as Resolver<EventoFormData>,
     defaultValues: initialData || {
       nombre: "",
       fechaCreacion: new Date().toISOString().slice(0, 16),

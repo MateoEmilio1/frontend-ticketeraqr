@@ -109,7 +109,7 @@ export default function PurchasePage() {
             setPurchasing(true);
             setError(null);
 
-            const idUsuario = user?.idUsuario || (user as any)?.id;
+            const idUsuario = user?.idUsuario || (user as { id?: number }).id;
             if (!idUsuario) {
                 setIsAuthModalOpen(true);
                 setPurchasing(false);
@@ -140,9 +140,8 @@ export default function PurchasePage() {
                 // Pago con tarjeta exitoso, redirigir a página de éxito
                 router.push("/pago-exitoso");
             }
-        } catch (err: any) {
-            console.error(err);
-            setError(err.message || "Hubo un error al procesar tu compra. Por favor, reintenta.");
+        } catch (err: unknown) {
+            setError((err as Error).message || "Error al procesar la compra. Por favor, reintenta.");
         } finally {
             setPurchasing(false);
         }

@@ -21,7 +21,13 @@ export async function createCliente(data: ClienteFormData): Promise<Cliente> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Error al crear cliente");
+  if (!res.ok) {
+    const error = await res.json();
+    if (error.details && Array.isArray(error.details)) {
+      throw { isValidationError: true, details: error.details };
+    }
+    throw new Error(error.message || "Error al crear cliente");
+  }
   const json = (await res.json()) as ApiResponse<Cliente>;
   return json.data;
 }
@@ -41,8 +47,7 @@ export async function updateCliente(
   if (!res.ok) {
     const error = await res.json();
     if (error.details && Array.isArray(error.details)) {
-      const messages = error.details.map((d: any) => d.message).join(", ");
-      throw new Error(messages);
+      throw { isValidationError: true, details: error.details };
     }
     throw new Error(error.message || "Error al actualizar cliente");
   }

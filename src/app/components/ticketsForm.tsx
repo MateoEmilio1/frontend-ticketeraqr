@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { crearTicket } from "@/app/services/ticketService";
@@ -23,7 +23,7 @@ export default function TicketForm({ onTicketCreated }: { onTicketCreated: (tick
     formState: { errors, isSubmitting },
     reset,
   } = useForm<TicketFormData>({
-    resolver: zodResolver(ticketSchema) as any,
+    resolver: zodResolver(ticketSchema) as unknown as Resolver<TicketFormData>,
   });
 
   const onFormSubmit = async (data: TicketFormData) => {
@@ -33,8 +33,8 @@ export default function TicketForm({ onTicketCreated }: { onTicketCreated: (tick
       onTicketCreated(res.data);
       setMensaje("Ticket generado con éxito");
       reset();
-    } catch (error: any) {
-      setMensaje(error.message || "Error al crear ticket");
+    } catch (error: unknown) {
+      setMensaje((error as any).message || "Error al crear ticket");
     }
   };
 

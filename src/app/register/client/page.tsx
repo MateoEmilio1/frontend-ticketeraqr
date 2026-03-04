@@ -21,7 +21,11 @@ export default function ClientRegisterPage() {
             alert("¡Registro exitoso! Ya podés iniciar sesión.");
             router.push("/login");
         } catch (err: any) {
-            setError(err?.message || "Ocurrió un error al registrar el cliente.");
+            if (err.isValidationError) {
+                // Let the form handle field-level validation errors natively
+                throw err;
+            }
+            setError((err as Error)?.message || "Ocurrió un error al registrar el cliente.");
         } finally {
             setLoading(false);
         }

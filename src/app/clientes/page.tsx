@@ -55,9 +55,12 @@ export default function ClientesPage() {
         setClientes((prev) => [...prev, newCliente]);
       }
       setEditingCliente(null);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.isValidationError) {
+        throw error;
+      }
       console.error("Error en el formulario:", error);
-      alert((error as Error).message);
+      alert((error as Error).message || "Ocurrió un error");
     } finally {
       setLoading(false);
     }

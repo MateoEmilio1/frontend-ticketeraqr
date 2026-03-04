@@ -13,6 +13,7 @@ export interface OrganizacionFormData {
   mail: string;
   cuit: string;
   contraseña: string;
+  repetirContraseña?: string;
 }
 
 export interface Usuario {
