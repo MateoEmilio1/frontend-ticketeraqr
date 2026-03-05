@@ -27,10 +27,7 @@ export const CategoriaTable: React.FC<CategoriaTableProps> = ({
             <tr key={categoria.idCategoria}>
               <td className="p-2 border">{categoria.nombreCategoria}</td>
               <td className="p-2 border">
-                <div className="flex gap-2">
-                  <button onClick={() => onEdit(categoria)} className="btn-edit">
-                    Editar
-                  </button>
+                <div className="flex justify-center">
                   <button onClick={() => onDelete(categoria)} className="btn-delete">
                     Eliminar
                   </button>
