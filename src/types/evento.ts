@@ -37,6 +37,7 @@ export interface EventoFormData {
   idOrganizacion: number;
   tipoTickets: TipoTicketFormData[];
   idEvento?: number;
+  ubicacion: string;
 }
 
 export interface TipoTicketFormData {
@@ -59,6 +60,7 @@ export interface Evento {
   idCategoria: number;
   estado?: 'ACTIVO' | 'CANCELADO' | 'FINALIZADO';
   tipoTickets: TipoTicket[];
+  ubicacion: string;
 }
 
 export interface TipoTicket {
