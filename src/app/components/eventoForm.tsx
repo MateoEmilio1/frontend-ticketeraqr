@@ -9,6 +9,7 @@ import { z } from "zod";
 const eventoSchema = z.object({
   nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   descripcion: z.string().optional(),
+  ubicacion: z.string().min(1, "La ubicación es requerida"),
   foto: z.string().min(1, "La foto es requerida"),
   fechaHoraEvento: z.string().min(1, "La fecha del evento es requerida"),
   fechaCreacion: z.string().min(1, "La fecha de creación es requerida"),
@@ -54,6 +55,7 @@ export const EventoForm: React.FC<EventoFormProps> = ({
       fechaCreacion: new Date().toISOString().slice(0, 16),
       fechaHoraEvento: "",
       descripcion: "",
+      ubicacion: "",
       foto: "",
       capacidadMax: 0,
       tipoTickets: [],
@@ -93,13 +95,9 @@ export const EventoForm: React.FC<EventoFormProps> = ({
     formData.append("file", file);
 
     try {
-      // Usamos el endpoint configurado en .env para subir imágenes
       const uploadUrl = process.env.NEXT_PUBLIC_API_URL
         ? `${process.env.NEXT_PUBLIC_API_URL}/api/upload`
-        : "http://localhost:3333/api/upload"; // Fallback endpoint, asumiendo que el backend maneja la subida a Drive
-
-      // Si URL_IMAGENES es el endpoint directo, lo usamos (pero es probable que sea una carpeta de drive, así que necesitamos que el backend lo maneje)
-      // Por ahora simularemos la subida o enviaremos al backend
+        : "http://localhost:3333/api/upload";
 
       const res = await fetch(uploadUrl, {
         method: "POST",
@@ -109,13 +107,11 @@ export const EventoForm: React.FC<EventoFormProps> = ({
       if (!res.ok) throw new Error("Error al subir la imagen");
 
       const data = await res.json();
-      // Asumimos que el backend devuelve la URL de Drive en data.url
       setValue("foto", data.url || data.secure_url || data.fileUrl);
 
     } catch (error) {
       console.error("Error subiendo imagen:", error);
       setImageError("No se pudo subir la imagen. Intenta nuevamente.");
-      // Fallback para demostración: creamos una URL local temporal
       const tempUrl = URL.createObjectURL(file);
       setValue("foto", tempUrl);
     } finally {
@@ -153,6 +149,16 @@ export const EventoForm: React.FC<EventoFormProps> = ({
       </div>
 
       <div>
+        <label className="block mb-2 text-sm font-medium">Ubicación</label>
+        <input
+          type="text"
+          {...register("ubicacion")}
+          className={`w-full p-2 border rounded ${errors.ubicacion ? 'border-red-500' : 'border-gray-300'}`}
+        />
+        {errors.ubicacion && <p className="text-red-500 text-xs mt-1">{errors.ubicacion.message}</p>}
+      </div>
+
+      <div>
         <label className="block mb-2 text-sm font-medium">Foto del Evento</label>
         <div className="flex gap-4 items-start">
           <div className="flex-1 space-y-2">
@@ -163,13 +169,14 @@ export const EventoForm: React.FC<EventoFormProps> = ({
               disabled={uploadingImage}
               className="w-full p-2 border border-gray-300 text-sm rounded bg-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             />
-            {/* Campo oculto para mantener el valor en el form de react-hook-form */}
+
             <input type="hidden" {...register("foto")} />
 
             {uploadingImage && <p className="text-blue-600 text-xs mt-1">Subiendo imagen...</p>}
             {imageError && <p className="text-red-500 text-xs mt-1">{imageError}</p>}
             {errors.foto && !uploadingImage && <p className="text-red-500 text-xs mt-1">{errors.foto.message}</p>}
           </div>
+
           {watch("foto") && (
             <div className="h-24 w-36 shrink-0 border rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center relative shadow-sm">
               <img
@@ -240,7 +247,6 @@ export const EventoForm: React.FC<EventoFormProps> = ({
         </div>
       </div>
 
-      {/* Sección visual para tickets agregados */}
       {tipoTickets && tipoTickets.length > 0 && (
         <div className="mt-4 p-4 border border-blue-100 bg-blue-50 rounded-lg">
           <h4 className="text-sm font-bold text-blue-900 mb-2">Tipos de Ticket Agregados:</h4>
